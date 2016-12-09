@@ -1,0 +1,3 @@
+./storm jar ../target/scfb-storm-1.0-jar-with-dependencies.jar org.apache.storm.flux.Flux --remote ../flux/csfb-topology.yaml
+~/storm-1.0.0/bin/storm jar ~/linghang.kong/CSFB.jar com.eastcom.csfb.storm.CsfbController org.apache.storm.flux.Flux --remote ~/linghang.kong/flux/csfb-topology.yaml
+./storm jar ../target/CSFB.jar org.apache.storm.flux.Flux --remote ../flux/csfb-topology.yaml

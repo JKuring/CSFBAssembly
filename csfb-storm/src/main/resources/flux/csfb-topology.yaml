@@ -1,0 +1,42 @@
+name: "csfb-topology"
+
+config:
+  topology.workers: 40
+  csfb.spout.topics: ["lte_s1_mme", "lte_sgs", "mc_call", "mc_paging", "mc_location"]
+  csfb.spout.queueName: file_uri_queue3
+  csfb.spout.threads.file: 5
+  csfb.spout.threads.redis: 5
+  csfb.spout.redis.buffer.ms: 3600000
+  csfb.spout.parallelism: 10
+  csfb.spout.zk.connect: "10.221.247.28:2181/partition-manager"
+  csfb.partition.size: 50000
+  csfb.bolt.parallelism: 10
+  csfb.activemq.broker.url: "tcp://10.221.247.50:61616"
+  csfb.activemq.queue.name: "Q_EVENT_PMCA_FILE2"
+  topology.worker.childopts: "-server -Xms6g -Xmx6g -Xmn2g -XX:ParallelGCThreads=10"
+  topology.fall.back.on.java.serialization: false
+  topology.skip.missing.kryo.registrations: false
+  topology.acker.executors: 0
+  topology.executor.send.buffer.size: 2048
+  topology.executor.receive.buffer.size: 2048
+  topology.receiver.buffer.size: 64
+  topology.transfer.buffer.size: 8192
+  storm.messaging.netty.sync.mode: false
+  topology.buffer.size.limited: false
+
+  worker.childopts: "-Xmx3g"
+  topology.metrics.consumer.register:
+    - class: "org.apache.storm.metric.LoggingMetricsConsumer"
+      parallelism.hint: 1
+
+includes:
+  - resource: false
+    file: "../flux/redisPool.yaml"
+    override: false
+  - resource: false
+    file: "../flux/serializer.yaml"
+    override: false
+
+topologySource:
+    className: "com.eastcom.csfb.storm.topo.CsfbTopology"
+    methodName: "getCsfbTopology"
