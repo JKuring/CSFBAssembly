@@ -1,19 +1,24 @@
 name: "csfb-topology"
 
 config:
-  topology.workers: 40
-  csfb.spout.topics: ["lte_s1_mme", "lte_sgs", "mc_call", "mc_paging", "mc_location"]
-  csfb.spout.queueName: file_uri_queue3
-  csfb.spout.threads.file: 5
-  csfb.spout.threads.redis: 5
-  csfb.spout.redis.buffer.ms: 3600000
-  csfb.spout.parallelism: 10
-  csfb.spout.zk.connect: "10.221.247.28:2181/partition-manager"
-  csfb.partition.size: 50000
-  csfb.bolt.parallelism: 10
-  csfb.activemq.broker.url: "tcp://10.221.247.50:61616"
-  csfb.activemq.queue.name: "Q_EVENT_PMCA_FILE2"
-  topology.worker.childopts: "-server -Xms6g -Xmx6g -Xmn2g -XX:ParallelGCThreads=10"
+  topology.workers: 30
+  project.spout.type: kafka
+  project.spout.file.topics: ["lte_s1_mme", "lte_sgs", "mc_call", "mc_paging", "mc_location"]
+
+  project.spout.ftp.reader.threads: 10
+  project.spout.kafka.reader.threads: 128
+  project.spout.redis.reader.threads: 10
+#  the redis scan delay this time
+  project.spout.redis.buffer.ms: 3600000
+  project.spout.parallelism: 10
+  project.spout.zk.connect: "10.221.247.11:2181/partition-manager"
+  project.redis.partition.size: 50000
+  project.bolt.parallelism: 10
+# MQ conf
+  project.mq.broker.url: "tcp://10.221.247.50:61616"
+  project.mq.queue.name: "Q_EVENT_PMCA_FILE2"
+
+  topology.worker.childopts: "-server -Xms1g -Xmx4g -Xmn2g -XX:ParallelGCThreads=10"
   topology.fall.back.on.java.serialization: false
   topology.skip.missing.kryo.registrations: false
   topology.acker.executors: 0
@@ -24,10 +29,20 @@ config:
   storm.messaging.netty.sync.mode: false
   topology.buffer.size.limited: false
 
-  worker.childopts: "-Xmx3g"
+  csvparser.selector.class: com.eastcom.csfb.storm.base.TopicCSVParsers
+
+#  worker.childopts: "-Xmx3g"
   topology.metrics.consumer.register:
     - class: "org.apache.storm.metric.LoggingMetricsConsumer"
       parallelism.hint: 1
+
+# kafka conf
+  kafka.group.id: ue_topology
+  kafka.topic.names: ["r_lte_s1_mme", "r_lte_sgs", "r_mc_call", "r_mc_paging", "r_mc_location"]
+  kafka.bootstrap.servers: "10.11.94.54:6667,10.11.94.62:6667,10.11.94.70:6667,10.11.94.77:6667,10.11.94.177:6667,10.11.94.179:6667,10.11.94.183:6667,10.11.94.185:6667,10.11.94.186:6667,10.11.94.190:6667,10.11.94.192:6667,10.11.94.107:6667,10.11.94.100:6667,10.11.94.92:6667,10.11.94.84:6667,10.11.94.156:6667"
+  kafka.key.deserializer: org.apache.kafka.common.serialization.ByteArrayDeserializer
+  kafka.value.deserializer: org.apache.kafka.common.serialization.ByteArrayDeserializer
+  kafka.auto.offset.reset: latest
 
 includes:
   - resource: false
@@ -35,6 +50,9 @@ includes:
     override: false
   - resource: false
     file: "../flux/serializer.yaml"
+    override: false
+  - resource: false
+    file: "../flux/hdfs-conf.yaml"
     override: false
 
 topologySource:

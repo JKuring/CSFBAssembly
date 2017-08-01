@@ -11,6 +11,9 @@ import com.eastcom.csfb.storm.base.reader.Readable;
 import com.eastcom.csfb.storm.base.reader.XdrReader;
 import com.eastcom.csfb.storm.base.util.DateUtils;
 import com.eastcom.csfb.storm.base.util.KryoUtils;
+import com.eastcom.csfb.storm.kafka.ITopicCsvParser;
+import com.eastcom.csfb.storm.kafka.KafkaReader;
+import com.eastcom.csfb.storm.kafka.ReadHook;
 import com.esotericsoftware.kryo.Kryo;
 import com.google.common.base.Charsets;
 import com.google.common.hash.HashFunction;
@@ -43,6 +46,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 import static com.eastcom.csfb.storm.base.util.StringUtils.toKey;
+import com.eastcom.csfb.storm.kafka.ConfigKey;
 import static org.apache.commons.collections4.MapUtils.getIntValue;
 import static org.apache.commons.lang3.StringUtils.join;
 import static redis.clients.util.SafeEncoder.encode;
@@ -57,9 +61,9 @@ import static redis.clients.util.SafeEncoder.encode;
  * spout 数据分发: 对RedisReader读取到的数据, 按imsi hash(分区索引) 分发到下游 bolt中.
  * 从而保证数据对同一imsi号在时间上是有序的. (spout发出的数据整体不是时间有序的)
  *
- * @author louyj
+ * @author linghang.kong
  */
-public class CsfbSpout extends BaseRichSpout {
+public class CsfbSpout extends BaseRichSpout implements ReadHook{
 
     private static final long serialVersionUID = 1L;
 
@@ -73,6 +77,13 @@ public class CsfbSpout extends BaseRichSpout {
     private BlockingQueue<Values> bufferQueue;
     private HashFunction hashFunction;
 
+    private String spoutType;
+    private TopicCSVParsers topicCSVParsers;
+
+    private RedisBatchExector redisBatchExector;
+
+    private Kryo kryo;
+
     private List<String> topicNames;
     private int partitionSize;
     private int redisBufferMs;
@@ -80,6 +91,7 @@ public class CsfbSpout extends BaseRichSpout {
     private MsgReceiver msgReceiver;
 
     private PartitionManager partitionManager;
+
 
     /**
      * Initialize the CSFB Spout.
@@ -101,25 +113,41 @@ public class CsfbSpout extends BaseRichSpout {
     @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
     public void open(Map conf, TopologyContext context, SpoutOutputCollector collector) {
+
+        this.kryo = KryoUtils.create();
+
+
         this.beanFactory = new BeanFactory(conf);
         this.jedisPool = beanFactory.getJedisPool();
         this.collector = collector;
-        // 获取Ftp配置 使用commons
-        this.xdrReader = new XdrReader(conf);
+
+        this.redisBatchExector = new RedisBatchExector(jedisPool);
+        this.redisBatchExector.open();
+
         this.bufferQueue = new ArrayBlockingQueue<Values>(bufferQueueSize);
+        this.partitionSize = MapUtils.getIntValue(conf, ConfigKey.PROJECT_REDIS_PARTITION_SIZE, 1000);
+        this.redisBufferMs = MapUtils.getIntValue(conf, ConfigKey.PROJECT_SPOUT_REDIS_BUFFER_MS, 30 * 60_000);
         this.hashFunction = Hashing.murmur3_128();
-        // start threads
+        this.spoutType = MapUtils.getString(conf, ConfigKey.PROJECT_SPOUT_TYPE);
 
-        String brokerURL = MapUtils.getString(conf, "csfb.activemq.broker.url");
-        String queueName = MapUtils.getString(conf, "csfb.activemq.queue.name");
-        int fileReadThreads = MapUtils.getIntValue(conf, "csfb.spout.threads.file", 5);
-        partitionSize = MapUtils.getIntValue(conf, "csfb.partition.size", 1000);
-        redisBufferMs = MapUtils.getIntValue(conf, "csfb.spout.redis.buffer.ms", 30 * 60_000);
+        this.topicCSVParsers = beanFactory.getTopicCsvParser();
 
-        this.msgReceiver = new MqReceiver(brokerURL, queueName);
-        for (int i = 0; i < fileReadThreads; i++) {
-            new FileReader("file-reader-" + i).start();
+
+        if (Objects.equals(this.spoutType, "ftp")) {
+            // 获取Ftp配置 使用commons
+            this.xdrReader = new XdrReader(conf);
+            // start threads
+            String brokerURL = MapUtils.getString(conf, ConfigKey.PROJECT_MQ_BROKER_URL);
+            String queueName = MapUtils.getString(conf, ConfigKey.PROJECT_MQ_QUEUE_NAME);
+            int fileReadThreads = MapUtils.getIntValue(conf, ConfigKey.PROJECT_SPOUT_FTP_READER_THREADS, 5);
+            this.msgReceiver = new MqReceiver(brokerURL, queueName);
+            for (int i = 0; i < fileReadThreads; i++) {
+                new FileReader("file-reader-" + i).start();
+            }
+        }else if (Objects.equals(this.spoutType,"kafka")){
+            new KafkaReader<>(conf, this, topicCSVParsers);
         }
+
         partitionManager = new PartitionManager(conf);
         partitionManager.start();
     }
@@ -134,7 +162,7 @@ public class CsfbSpout extends BaseRichSpout {
             if (v != null) {
                 collector.emit(v);
             } else {
-                DateUtils.sleep(1);
+                DateUtils.sleep(10);
                 break;
             }
         }
@@ -150,31 +178,31 @@ public class CsfbSpout extends BaseRichSpout {
      */
     private class FileReader extends Thread {
 
-        private RedisBatchExector rbe;
+//        private RedisBatchExector rbe;
 
-        private Kryo kryo;
+//        private Kryo kryo;
 
         public FileReader(String name) {
             super(name);
-            kryo = KryoUtils.create();
+//            kryo = KryoUtils.create();
         }
 
         @Override
         public void run() {
             // according to JedisPool to create Jedis Pipeline.
-            rbe = new RedisBatchExector(jedisPool);
-            rbe.open();
+//            rbe = new RedisBatchExector(jedisPool);
+//            rbe.open();
             while (!this.isInterrupted()) {
                 try {
                     doRead();
                 } catch (Exception e) {
                     logger.error("", e);
-                    rbe.broken();
+                    redisBatchExector.broken();
                     DateUtils.sleep(100);
-                    rbe.open();
+                    redisBatchExector.open();
                 }
             }
-            rbe.close();
+            redisBatchExector.close();
         }
 
         protected void doRead() throws Exception {
@@ -193,7 +221,7 @@ public class CsfbSpout extends BaseRichSpout {
             // TopicCSVParsers is a factory class of CSV parser. According to
             // 'topicName' ,it choose a CSV parser object.
             // eg, lte S1-AP, SGs, etc.
-            CSVParser<? extends UserCommon> csvParser = TopicCSVParsers.getCSVParser(topicName);
+            CSVParser<? extends UserCommon> csvParser = topicCSVParsers.getCSVParser(topicName);
             if (csvParser == null) {
                 logger.error("No parser found for topic {}.", topicName);
                 return;
@@ -221,17 +249,7 @@ public class CsfbSpout extends BaseRichSpout {
                     // 获取并初始化对象
                     UserCommon csvObject = toObject(topicName, csvParser, line, fileUri);
                     csvObject = filter(csvObject);
-                    if (csvObject != null) {
-                        String imsi = csvObject.getImsi();
-                        int imsiHash = hashFunction.newHasher().putString(imsi, Charsets.UTF_8).hash().asInt();
-                        // 根据imsi产生的hash，创建redis数据分区
-                        int partition = Math.abs(imsiHash % partitionSize);
-                        String key = toKey(redisKey, "{" + partition + "}");
-                        byte[] bs = KryoUtils.serialize(kryo, csvObject);
-                        long time = csvObject.getStartTime();
-                        // 添加数据到zset中 jp.getPipeline().zadd(key, score, member);
-                        rbe.zadd(encode(key), time, bs);
-                    }
+                    toRedisPartition(csvObject);
                     line = reader.readLine();
                     lines++;
                 }
@@ -240,16 +258,6 @@ public class CsfbSpout extends BaseRichSpout {
             }
         }
 
-        // TODO: 对数据做过滤, 只保留csfb需要的数据
-        private UserCommon filter(UserCommon csvObject) {
-            if (csvObject == null)
-                return null;
-            String imsi = csvObject.getImsi();
-            if (StringUtils.isEmpty(imsi) || "0".equals(imsi)) {
-                return null;
-            }
-            return csvObject;
-        }
 
         private String parseTopicName(String fileUri) {
             for (String topicName : topicNames) {
@@ -270,7 +278,7 @@ public class CsfbSpout extends BaseRichSpout {
             if (csvParser != null) {
                 data = csvParser.parse(message, uri);
             } else {
-                data = TopicCSVParsers.parse(topic, message, uri);
+                data = topicCSVParsers.parse(topic, message, uri);
             }
             return data;
         }
@@ -369,10 +377,10 @@ public class CsfbSpout extends BaseRichSpout {
 
         @SuppressWarnings({"rawtypes", "unchecked"})
         public PartitionManager(Map conf) {
-            partitionSize = getIntValue(conf, "csfb.partition.size", 1000);
-            spoutParallelism = getIntValue(conf, "csfb.spout.parallelism", 10);
-            redisReadThreads = getIntValue(conf, "csfb.spout.threads.redis", 5);
-            zkConnectionString = MapUtils.getString(conf, "csfb.spout.zk.connect");
+            partitionSize = getIntValue(conf, ConfigKey.PROJECT_REDIS_PARTITION_SIZE, 1000);
+            spoutParallelism = getIntValue(conf, ConfigKey.PROJECT_SPOUT_PARALLELISM, 10);
+            redisReadThreads = getIntValue(conf, ConfigKey.PROJECT_SPOUT_REDIS_READER_THREADS, 5);
+            zkConnectionString = MapUtils.getString(conf, ConfigKey.PROJECT_SPOUT_ZK_CONNECT);
         }
 
         public void start() {
@@ -484,4 +492,64 @@ public class CsfbSpout extends BaseRichSpout {
 
     }
 
+    // TODO: 对数据做过滤, 只保留csfb需要的数据
+    private UserCommon filter(UserCommon csvObject) {
+        if (csvObject == null)
+            return null;
+        String imsi = csvObject.getImsi();
+        if (StringUtils.isEmpty(imsi) || "0".equals(imsi)) {
+            return null;
+        }
+        return csvObject;
+    }
+
+
+    private void toRedisPartition(UserCommon csvObject){
+        if (csvObject != null) {
+            String imsi = csvObject.getImsi();
+            int imsiHash = hashFunction.newHasher().putString(imsi, Charsets.UTF_8).hash().asInt();
+            // 根据imsi产生的hash，创建redis数据分区
+            int partition = Math.abs(imsiHash % partitionSize);
+            String key = toKey(redisKey, "{" + partition + "}");
+            byte[] bs = KryoUtils.serialize(kryo, csvObject);
+            long time = csvObject.getStartTime();
+            // 添加数据到zset中 jp.getPipeline().zadd(key, score, member);
+            redisBatchExector.zadd(encode(key), time, bs);
+        }
+    }
+
+    @Override
+    public void afterEmitFile(String topic, int lines, long useTime) {
+
+    }
+
+    @Override
+    public void afterEmit(String topic, Object data, String message) {
+
+    }
+
+    @Override
+    public void putValues(BlockingQueue bufferQueue, Object data, String topicName) throws Exception {
+        try {
+            // 获取并初始化对象
+            UserCommon csvObject = (UserCommon) data;
+            csvObject = filter(csvObject);
+            toRedisPartition(csvObject);
+        }catch (Exception e){
+            redisBatchExector.broken();
+            DateUtils.sleep(100);
+            redisBatchExector.open();
+            throw e;
+        }
+    }
+
+    @Override
+    public BlockingQueue getBufferQueue() {
+        return bufferQueue;
+    }
+
+    @Override
+    public void afterParse(Object data) {
+
+    }
 }

@@ -1,5 +1,6 @@
 package com.eastcom.csfb.storm.topo;
 
+import com.eastcom.csfb.storm.kafka.ConfigKey;
 import org.apache.storm.generated.StormTopology;
 import org.apache.storm.hdfs.bolt.format.DefaultFileNameFormat;
 import org.apache.storm.hdfs.bolt.format.DelimitedRecordFormat;
@@ -16,12 +17,13 @@ import java.util.List;
 import java.util.Map;
 
 import static org.apache.commons.collections4.MapUtils.getIntValue;
+import static org.apache.commons.collections4.MapUtils.getString;
 
 public class CsfbTopology {
 
     // Hdfs Service
-    private static final String HDFS_PATH = "/rawdata/xdr/lte/lte_csfb/";
-    private static final String HDFS_URL = "hdfs://nameservice1";
+    private static String HDFS_PATH;
+    private static String HDFS_URL;
     private static final float CREATE_HDFS_FILE_INTERVAL = 5.0f;
     private static final int SYNC_COUNT = 10000;
 
@@ -34,9 +36,12 @@ public class CsfbTopology {
     @SuppressWarnings("unchecked")
     public StormTopology getCsfbTopology(Map<String, Object> conf) {
 
-        List<String> topicNames = (List<String>) conf.get("csfb.spout.topics");
-        int spoutParallelism = getIntValue(conf, "csfb.spout.parallelism");
-        int boltParallelism = Math.abs(getIntValue(conf, "csfb.bolt.parallelism"));
+        List<String> topicNames = (List<String>) conf.get(ConfigKey.PROJECT_SPOUT_FILE_TOPICS);
+        int spoutParallelism = getIntValue(conf, ConfigKey.PROJECT_SPOUT_PARALLELISM);
+        int boltParallelism = Math.abs(getIntValue(conf, ConfigKey.PROJECT_BOLT_PARALLELISM));
+
+        HDFS_URL = getString(conf,"hdfs.url");
+        HDFS_PATH = getString(conf,"hdfs.path");
 
         String spoutName = "csfbSpout";
         String extractSignalBoltName = "extractSignalBolt";

@@ -12,11 +12,12 @@ import com.eastcom.csfb.data.mc.McPaging;
 import com.eastcom.csfb.data.mc.parser.McCallParser;
 import com.eastcom.csfb.data.mc.parser.McLocationUpdateParser;
 import com.eastcom.csfb.data.mc.parser.McPagingParser;
+import com.eastcom.csfb.storm.kafka.ITopicCsvParser;
 
 /**
  * 根据不同topic 解析创建不同对象
  */
-public class TopicCSVParsers {
+public class TopicCSVParsers implements ITopicCsvParser {
 
     public final static CSVParser<LteS1Mme> lte_s1_mme = new LteS1MmeCSVParser();
     public final static CSVParser<LteSGs> lte_sgs = new LteSgsCSVParser();
@@ -31,7 +32,7 @@ public class TopicCSVParsers {
      * @param topic
      * @return
      */
-    public static CSVParser<? extends UserCommon> getCSVParser(String topic) {
+    public CSVParser<? extends UserCommon> getCSVParser(String topic) {
 
         if ("lte_s1_mme".equals(topic)) {
             return lte_s1_mme;
@@ -64,7 +65,7 @@ public class TopicCSVParsers {
      * @param uri
      * @return
      */
-    public static UserCommon parse(String topic, byte[] csvData, String uri) {
+    public  UserCommon parse(String topic, byte[] csvData, String uri) {
         return getCSVParser(topic).parse(csvData, uri);
     }
 
@@ -80,7 +81,7 @@ public class TopicCSVParsers {
      * @param uri
      * @return
      */
-    public static UserCommon parse(String topic, String csvData, String uri) {
+    public  UserCommon parse(String topic, String csvData, String uri) {
         return getCSVParser(topic).parse(csvData, uri);
     }
 

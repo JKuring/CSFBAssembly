@@ -1,6 +1,9 @@
 package com.eastcom.csfb.storm.base;
 
 import com.eastcom.csfb.storm.base.pool.RoundRobinJedisPool;
+import com.eastcom.csfb.storm.kafka.ConfigKey;
+import com.eastcom.csfb.storm.kafka.ITopicCsvParser;
+import org.apache.commons.collections4.MapUtils;
 
 import java.util.HashMap;
 import java.util.List;
@@ -16,6 +19,7 @@ public class BeanFactory {
     public static final String PUBSUB_JEDIS_PREFIX = "pubsub.jedis.";
     private static DataCache dataCache;
     private static RoundRobinJedisPool jedisPool;
+    private static TopicCSVParsers topicCsvParser;
     private static Object LOCKER = "LOCKER";
     private Map<String, Object> stormConfig;
 
@@ -102,6 +106,23 @@ public class BeanFactory {
             }
             dataCache = new DataCache(getJedisPool());
             return dataCache;
+        }
+    }
+
+    public TopicCSVParsers getTopicCsvParser() {
+        synchronized (BeanFactory.class) {
+            try {
+                if (topicCsvParser != null) {
+                    return topicCsvParser;
+                }
+                String clazzName = MapUtils.getString(stormConfig, ConfigKey.CSVPARSER_SELECTOR_CLASS,
+                        "com.eastcom.csfb.storm.base.TopicCSVParsers");
+                Class<?> clazz = Class.forName(clazzName);
+                topicCsvParser = (TopicCSVParsers) clazz.newInstance();
+                return topicCsvParser;
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 

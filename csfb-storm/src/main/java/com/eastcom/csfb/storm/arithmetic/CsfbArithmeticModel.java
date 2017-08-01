@@ -49,7 +49,6 @@ public class CsfbArithmeticModel implements CsfbDataModel, Serializable {
 
 
     public Csfb getCsfbCallTicket() {
-        // 判断信令合成顺序是否正常
         if (filter()) {
             return null;
         }
@@ -144,23 +143,71 @@ public class CsfbArithmeticModel implements CsfbDataModel, Serializable {
 
     }
 
+    /**
+     * 信令过滤规则
+     * @return True is filter the signal
+     */
     private boolean filter() {
         boolean result = false;
+        result = isCSFB() && isInsertedExceptionSignal();
+        return result;
+    }
 
-        // 过滤信令时序异常
-        // 3：Extended Service Request
-        UserCommon lteS1Mme = csfbSignal.get("LteS1Mme-3");
-        // 1：SGsAP-PAGING
-        UserCommon lteSGs = this.csfbSignal.get("LteSGs-1");
-        // Mc voice call
-        UserCommon mcCallEvent = this.csfbSignal.get("McCallEvent");
-        if (mcCallEvent instanceof McCallEvent) {
-            McCallEvent mot = (McCallEvent) mcCallEvent;
-            if (mot.getEventId() == 1 && lteS1Mme instanceof LteS1Mme && (mcCallEvent.getStartTime() < lteS1Mme.getStartTime())) {
-                result = true;
-            } else if (mot.getEventId() == 3 && lteSGs instanceof LteSGs && (mcCallEvent.getStartTime() < lteSGs.getStartTime())) {
-                result = true;
+    private boolean isCSFB(){
+        boolean result = false;
+        try {
+            UserCommon mcCallEvent = this.csfbSignal.get("McCallEvent");
+            if (mcCallEvent instanceof McCallEvent) {
+                int eventId = ((McCallEvent) mcCallEvent).getEventId();
+                if (eventId == 1 && !(csfbSignal.get("LteS1Mme-3") instanceof LteS1Mme) && !(csfbSignal.get("LteS1Mme-18") instanceof LteS1Mme)) {
+                    result = true;
+                } else if (eventId == 3 && !(this.csfbSignal.get("LteSGs-1") instanceof LteSGs) && !(csfbSignal.get("LteS1Mme-4") instanceof LteS1Mme)) {
+                    result = true;
+                }
             }
+        }catch (Exception e){
+            logProcessing("isCSFB: "+ e.getMessage());
+        }
+        return result;
+    }
+
+    /**
+     *
+     * @param eventId
+     * @return
+     */
+    private boolean switchSignal(int eventId){
+        boolean result = false;
+        if (eventId ==1){
+            csfbSignal.put("LteS1Mme-3",csfbSignal.get("LteS1Mme-18"));
+            result = true;
+        }else if (eventId ==3){
+            csfbSignal.put("LteSGs-1", csfbSignal.get("LteS1Mme-4"));
+            result = true;
+        }
+        return result;
+    }
+
+    private boolean isInsertedExceptionSignal(){
+        boolean result = false;
+        try {
+            // 过滤信令时序异常
+            // 3：Extended Service Request
+            UserCommon lteS1Mme = csfbSignal.get("LteS1Mme-3");
+            // 1：SGsAP-PAGING
+            UserCommon lteSGs = this.csfbSignal.get("LteSGs-1");
+            // Mc voice call
+            UserCommon mcCallEvent = this.csfbSignal.get("McCallEvent");
+            if (mcCallEvent instanceof McCallEvent) {
+                McCallEvent mot = (McCallEvent) mcCallEvent;
+                if (mot.getEventId() == 1 && lteS1Mme instanceof LteS1Mme && (mcCallEvent.getStartTime() < lteS1Mme.getStartTime())) {
+                    result = true;
+                } else if (mot.getEventId() == 3 && lteSGs instanceof LteSGs && (mcCallEvent.getStartTime() < lteSGs.getStartTime())) {
+                    result = true;
+                }
+            }
+        }catch (Exception e){
+            logProcessing("isInsertedExceptionSignal: " + e.getMessage());
         }
         return result;
     }

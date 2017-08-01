@@ -1,1 +1,4 @@
 config:
+# core-site.xml and hdfs-site.xml were compressed to the topology jar
+    hdfs.url: hdfs://hdp
+    hdfs.path: /rawdata/xdr/lte/lte_csfb/

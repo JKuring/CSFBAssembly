@@ -1,5 +1,6 @@
 package com.eastcom.csfb.storm.base.reader;
 
+import com.eastcom.csfb.storm.kafka.ConfigKey;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -19,11 +20,11 @@ public class XdrReader implements Readable {
 
     @SuppressWarnings("rawtypes")
     public XdrReader(Map conf) {
-        boolean enablePool = MapUtils.getBoolean(conf, "ftp.pool.enable", false);
+        boolean enablePool = MapUtils.getBoolean(conf, ConfigKey.FTP_POOL_ENABLE, false);
         if (enablePool) {
             // 从map conf中取出key="ftp.pool.maxTotal"的值，如果值为null，则返回默认值100
-            Integer maxTotal = MapUtils.getInteger(conf, "ftp.pool.maxTotal", 100);
-            Integer maxIdle = MapUtils.getInteger(conf, "ftp.pool.maxIdle", 10);
+            Integer maxTotal = MapUtils.getInteger(conf, ConfigKey.FTP_POOL_MAX_TOTAL, 100);
+            Integer maxIdle = MapUtils.getInteger(conf, ConfigKey.FTP_POOL_MAX_IDLE, 10);
             ftpXdrReader = new PooledFtpReader(maxTotal, maxIdle);
         } else {
             ftpXdrReader = new FtpReader();
