@@ -65,7 +65,7 @@ public class TopicCSVParsers implements ITopicCsvParser {
      * @param uri
      * @return
      */
-    public  UserCommon parse(String topic, byte[] csvData, String uri) {
+    public UserCommon parse(String topic, byte[] csvData, String uri) {
         return getCSVParser(topic).parse(csvData, uri);
     }
 
@@ -81,7 +81,7 @@ public class TopicCSVParsers implements ITopicCsvParser {
      * @param uri
      * @return
      */
-    public  UserCommon parse(String topic, String csvData, String uri) {
+    public UserCommon parse(String topic, String csvData, String uri) {
         return getCSVParser(topic).parse(csvData, uri);
     }
 

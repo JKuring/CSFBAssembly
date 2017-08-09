@@ -145,6 +145,7 @@ public class CsfbArithmeticModel implements CsfbDataModel, Serializable {
 
     /**
      * 信令过滤规则
+     *
      * @return True is filter the signal
      */
     private boolean filter() {
@@ -153,7 +154,7 @@ public class CsfbArithmeticModel implements CsfbDataModel, Serializable {
         return result;
     }
 
-    private boolean isCSFB(){
+    private boolean isCSFB() {
         boolean result = false;
         try {
             UserCommon mcCallEvent = this.csfbSignal.get("McCallEvent");
@@ -165,30 +166,29 @@ public class CsfbArithmeticModel implements CsfbDataModel, Serializable {
                     result = true;
                 }
             }
-        }catch (Exception e){
-            logProcessing("isCSFB: "+ e.getMessage());
+        } catch (Exception e) {
+            logProcessing("isCSFB: " + e.getMessage());
         }
         return result;
     }
 
     /**
-     *
      * @param eventId
      * @return
      */
-    private boolean switchSignal(int eventId){
+    private boolean switchSignal(int eventId) {
         boolean result = false;
-        if (eventId ==1){
-            csfbSignal.put("LteS1Mme-3",csfbSignal.get("LteS1Mme-18"));
+        if (eventId == 1) {
+            csfbSignal.put("LteS1Mme-3", csfbSignal.get("LteS1Mme-18"));
             result = true;
-        }else if (eventId ==3){
+        } else if (eventId == 3) {
             csfbSignal.put("LteSGs-1", csfbSignal.get("LteS1Mme-4"));
             result = true;
         }
         return result;
     }
 
-    private boolean isInsertedExceptionSignal(){
+    private boolean isInsertedExceptionSignal() {
         boolean result = false;
         try {
             // 过滤信令时序异常
@@ -206,7 +206,7 @@ public class CsfbArithmeticModel implements CsfbDataModel, Serializable {
                     result = true;
                 }
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             logProcessing("isInsertedExceptionSignal: " + e.getMessage());
         }
         return result;

@@ -1,4 +1,56 @@
+name: "csfb-topology"
+
 config:
+  topology.workers: 30
+  project.spout.type: kafka
+  project.spout.file.topics: ["lte_s1_mme", "lte_sgs", "mc_call", "mc_paging", "mc_location"]
+
+  project.spout.ftp.reader.threads: 10
+  project.spout.kafka.reader.threads: 128
+  project.spout.redis.reader.threads: 10
+#  the redis scan delay this time
+  project.spout.redis.buffer.ms: 3600000
+  project.spout.parallelism: 10
+  project.spout.zk.connect: "10.221.247.11:2181/partition-manager"
+  project.redis.partition.size: 50000
+  project.bolt.parallelism: 10
+# MQ conf
+  project.mq.broker.url: "tcp://10.221.247.50:61616"
+  project.mq.queue.name: "Q_EVENT_PMCA_FILE2"
+
+  topology.worker.childopts: "-server -Xms1g -Xmx4g -Xmn2g -XX:ParallelGCThreads=10"
+  topology.fall.back.on.java.serialization: false
+  topology.skip.missing.kryo.registrations: false
+  topology.acker.executors: 0
+  topology.executor.send.buffer.size: 2048
+  topology.executor.receive.buffer.size: 2048
+  topology.receiver.buffer.size: 64
+  topology.transfer.buffer.size: 8192
+  storm.messaging.netty.sync.mode: false
+  topology.buffer.size.limited: false
+
+  csvparser.selector.class: com.eastcom.csfb.storm.base.TopicCSVParsers
+
+#  worker.childopts: "-Xmx3g"
+  topology.metrics.consumer.register:
+    - class: "org.apache.storm.metric.LoggingMetricsConsumer"
+      parallelism.hint: 1
+
+# kafka conf
+  kafka.group.id: ue_topology
+  kafka.topic.names: ["r_lte_s1_mme", "r_lte_sgs", "r_mc_call", "r_mc_paging", "r_mc_location"]
+  kafka.bootstrap.servers: "10.11.94.54:6667,10.11.94.62:6667,10.11.94.70:6667,10.11.94.77:6667,10.11.94.177:6667,10.11.94.179:6667,10.11.94.183:6667,10.11.94.185:6667,10.11.94.186:6667,10.11.94.190:6667,10.11.94.192:6667,10.11.94.107:6667,10.11.94.100:6667,10.11.94.92:6667,10.11.94.84:6667,10.11.94.156:6667"
+  kafka.key.deserializer: org.apache.kafka.common.serialization.ByteArrayDeserializer
+  kafka.value.deserializer: org.apache.kafka.common.serialization.ByteArrayDeserializer
+  kafka.auto.offset.reset: latest
+
+#includes:
+#  - resource: false
+#    file: "../flux/redisPool.yaml"
+#    override: false
+  pubsub.jedis.address: 10.221.247.8:9000
+  pubsub.jedis.password: stream!23$
+
   pubsub.jedis.address: 10.11.94.160:6301
   pubsub.jedis.password: stream!23$
 
@@ -236,3 +288,60 @@ config:
     - 10.11.94.213:6410
     - 10.11.94.213:6411
     - 10.11.94.213:6412
+
+#  - resource: false
+#    file: "../flux/serializer.yaml"
+#    override: false
+  topology.kryo.register:
+     - com.eastcom.csfb.LteS1Mme: com.eastcom.csfb.LteS1MmeSerializer
+     - com.eastcom.csfb.LteSGs: com.eastcom.csfb.LteSgsSerializer
+     - com.eastcom.csfb.McCallEvent: com.eastcom.csfb.McCallSerializer
+     - com.eastcom.csfb.McLocationUpdate: com.eastcom.csfb.McLocationUpdateSerializer
+     - com.eastcom.csfb.McPaging: com.eastcom.csfb.McPagingSerializer
+     #- java.util.LinkedHashMap: com.eastcom.csfb.storm.base.common.LinkedHashMapSerializer
+     - java.util.LinkedHashMap: com.esotericsoftware.kryo.serializers.MapSerializer
+
+#  - resource: false
+#    file: "../flux/hdfs-conf.yaml"
+#    override: false
+  hdfs.url: "hdfs://hdp"
+  hdfs.path: "/rawdata/xdr/lte/lte_csfb/"
+  hdfs.batch: 100000
+  hdfs.createDir.interval: 5
+  hdfs.file.content.split: |
+  hdfs.file.name.prefix: csfb_
+
+
+#topologySource:
+#    className: "com.eastcom.csfb.storm.topo.CsfbTopology"
+#    methodName: "getCsfbTopology"
+
+# spout definitions
+spouts:
+  - id: "csfbSpout"
+    className: "com.eastcom.csfb.storm.topo.CsfbSpout"
+    parallelism: 10
+
+# bolt definitions
+bolts:
+  - id: "extractSignalBolt"
+    className: "com.eastcom.csfb.storm.topo.ExtractSignalBolt"
+    parallelism: 10
+  - id: "outputDataBolt"
+    className: "com.eastcom.csfb.storm.topo.OutputDataBolt"
+    parallelism: 10
+
+#stream definitions
+streams:
+  - name: "csfbSpout --> extractSignalBolt"
+    from: "csfbSpout"
+    to: "extractSignalBolt"
+    grouping:
+      type: FIELDS
+      args: ["partition"]
+
+  - name: "extractSignalBolt --> outputDataBolt"
+    from: "extractSignalBolt"
+    to: "outputDataBolt"
+    grouping:
+      type: SHUFFLE

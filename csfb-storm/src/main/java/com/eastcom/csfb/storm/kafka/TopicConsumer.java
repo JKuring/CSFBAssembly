@@ -1,14 +1,13 @@
 package com.eastcom.csfb.storm.kafka;
 
-import com.eastcom.csfb.storm.base.util.DateUtils;
 import com.eastcom.csfb.data.CSVParser;
+import com.eastcom.csfb.storm.base.util.DateUtils;
+import com.google.common.base.Charsets;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Charsets;
 
 public class TopicConsumer<QV> extends Thread {
 

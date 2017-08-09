@@ -15,6 +15,7 @@
 
     <build>
         <plugins>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -23,8 +24,10 @@
                     <target>1.7</target>
                 </configuration>
             </plugin>
+
         </plugins>
     </build>
+
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -35,28 +38,5 @@
     </properties>
 
 
-    <distributionManagement>
-        <repository>
-            <id>eastcom-release</id>
-            <name>eastcom-release</name>
-            <url>http://192.168.1.138:8080/nexus/content/repositories/releases</url>
-        </repository>
-        <snapshotRepository>
-            <id>eastcom-snapshot</id>
-            <name>eastcom-snapshot</name>
-            <url>http://192.168.1.138:8080/nexus/content/repositories/snapshots</url>
-            <uniqueVersion>true</uniqueVersion>
-        </snapshotRepository>
-    </distributionManagement>
-    <repositories>
-        <repository>
-            <id>eastcom-public</id>
-            <url>http://192.168.1.138:8080/nexus/content/groups/public/</url>
-        </repository>
-        <repository>
-            <id>clojars.org</id>
-            <url>http://clojars.org/repo</url>
-        </repository>
-    </repositories>
 
 </project>

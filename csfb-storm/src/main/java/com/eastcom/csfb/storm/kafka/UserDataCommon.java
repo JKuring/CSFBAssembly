@@ -4,7 +4,6 @@ import com.eastcom.csfb.data.UserCommon;
 
 /**
  * 用户使用某类APP所用上行流量和下行流量。(大类->小类、上行流量、下行流量)
- *
  */
 public interface UserDataCommon extends UserCommon, UserFlowCommon {
 

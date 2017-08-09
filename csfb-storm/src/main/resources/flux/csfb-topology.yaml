@@ -55,6 +55,38 @@ includes:
     file: "../flux/hdfs-conf.yaml"
     override: false
 
-topologySource:
-    className: "com.eastcom.csfb.storm.topo.CsfbTopology"
-    methodName: "getCsfbTopology"
+#topologySource:
+#    className: "com.eastcom.csfb.storm.topo.CsfbTopology"
+#    methodName: "getCsfbTopology"
+
+
+
+# spout definitions
+spouts:
+  - id: "csfbSpout"
+    className: "com.eastcom.csfb.storm.topo.CsfbSpout"
+    parallelism: 10
+
+# bolt definitions
+bolts:
+  - id: "extractSignalBolt"
+    className: "com.eastcom.csfb.storm.topo.ExtractSignalBolt"
+    parallelism: 10
+  - id: "outputDataBolt"
+    className: "com.eastcom.csfb.storm.topo.OutputDataBolt"
+    parallelism: 10
+
+#stream definitions
+streams:
+  - name: "csfbSpout --> extractSignalBolt"
+    from: "csfbSpout"
+    to: "extractSignalBolt"
+    grouping:
+      type: FIELDS
+      args: ["partition"]
+
+  - name: "extractSignalBolt --> outputDataBolt"
+    from: "extractSignalBolt"
+    to: "outputDataBolt"
+    grouping:
+      type: SHUFFLE

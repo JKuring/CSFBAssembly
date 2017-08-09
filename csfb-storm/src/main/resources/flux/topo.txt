@@ -3,3 +3,6 @@
 ./storm jar ../target/CSFB.jar org.apache.storm.flux.Flux --remote ../flux/csfb-topology.yaml
 
  bin/storm jar ../linghang.kong/csfb/target/CSFB.jar org.apache.storm.flux.Flux --remote ../linghang.kong/csfb/flux/csfb-topology.yaml
+
+
+-Dstorm.conf.file=/allConf.yaml

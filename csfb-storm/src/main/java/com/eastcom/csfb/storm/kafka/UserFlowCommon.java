@@ -4,7 +4,6 @@ package com.eastcom.csfb.storm.kafka;
  * 流量公共字段
  *
  * @author louyj
- *
  */
 
 public interface UserFlowCommon {

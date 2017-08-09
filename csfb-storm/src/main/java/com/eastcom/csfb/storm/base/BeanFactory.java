@@ -2,7 +2,6 @@ package com.eastcom.csfb.storm.base;
 
 import com.eastcom.csfb.storm.base.pool.RoundRobinJedisPool;
 import com.eastcom.csfb.storm.kafka.ConfigKey;
-import com.eastcom.csfb.storm.kafka.ITopicCsvParser;
 import org.apache.commons.collections4.MapUtils;
 
 import java.util.HashMap;

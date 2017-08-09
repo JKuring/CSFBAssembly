@@ -1,29 +1,27 @@
 package com.eastcom.csfb.storm.kafka;
 
-import static com.google.common.base.Preconditions.checkArgument;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-
 import org.apache.commons.collections4.MapUtils;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+
+import static com.google.common.base.Preconditions.checkArgument;
 
 
 /**
  * yaml配置如下:
- *
+ * <p>
  * kafka.topics.names: ["topic1:2", "topic2:2"] kafka.group.id: ue_topology
  * kafka.bootstrap.servers: "x.x.x.x:xxxx/root" kafka.key.deserializer: xxx
  * kafka.value.deserializer: xxx
  *
  * @author Louyj
- *
  */
 
 public class KafkaReader<QV> {
@@ -32,7 +30,7 @@ public class KafkaReader<QV> {
 
     private List<Thread> readers;
 
-    @SuppressWarnings({ "rawtypes", "unchecked" })
+    @SuppressWarnings({"rawtypes", "unchecked"})
     public KafkaReader(final Map conf, ReadHook<QV> readHook, ITopicCsvParser topicCsvParser) {
 
         checkArgument(conf.get(ConfigKey.KAFKA_GROUP_ID) != null);
@@ -57,7 +55,6 @@ public class KafkaReader<QV> {
             reader.start();
         }
     }
-
 
 
     private Properties getKafkaConsumerConfig(Map<String, Object> stormConfig) {
