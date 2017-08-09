@@ -29,6 +29,10 @@ config:
   storm.messaging.netty.sync.mode: false
   topology.buffer.size.limited: false
 
+  topology.backpressure.enable: true
+  backpressure.disruptor.high.watermark: 0.9
+  backpressure.disruptor.low.watermark:  0.4
+
   csvparser.selector.class: com.eastcom.csfb.storm.base.TopicCSVParsers
 
 #  worker.childopts: "-Xmx3g"
@@ -37,7 +41,7 @@ config:
       parallelism.hint: 1
 
 # kafka conf
-  kafka.group.id: ue_topology
+  kafka.group.id: csfb_topology
   kafka.topic.names: ["r_lte_s1_mme", "r_lte_sgs", "r_mc_call", "r_mc_paging", "r_mc_location"]
   kafka.bootstrap.servers: "10.11.94.54:6667,10.11.94.62:6667,10.11.94.70:6667,10.11.94.77:6667,10.11.94.177:6667,10.11.94.179:6667,10.11.94.183:6667,10.11.94.185:6667,10.11.94.186:6667,10.11.94.190:6667,10.11.94.192:6667,10.11.94.107:6667,10.11.94.100:6667,10.11.94.92:6667,10.11.94.84:6667,10.11.94.156:6667"
   kafka.key.deserializer: org.apache.kafka.common.serialization.ByteArrayDeserializer
