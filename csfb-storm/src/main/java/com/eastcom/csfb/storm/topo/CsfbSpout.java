@@ -94,7 +94,6 @@ public class CsfbSpout extends BaseRichSpout implements ReadHook {
 
     /**
      * Initialize the CSFB Spout.
-     *
      */
     public CsfbSpout() {
         super();

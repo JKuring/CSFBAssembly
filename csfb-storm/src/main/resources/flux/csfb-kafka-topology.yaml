@@ -1,0 +1,109 @@
+name: "csfb-topology"
+
+config:
+  topology.workers: 30
+  project.spout.type: kafka
+  project.spout.file.topics: ["lte_s1_mme", "lte_sgs", "mc_call", "mc_paging", "mc_location"]
+
+  project.spout.ftp.reader.threads: 10
+  project.spout.kafka.reader.threads: 128
+  project.spout.kafka.writer.threads: 1
+  project.spout.redis.reader.threads: 10
+#  the redis scan delay this time
+  project.spout.redis.buffer.ms: 3600000
+  project.spout.parallelism: 10
+  project.spout.zk.connect: "10.221.247.11:2181/partition-manager"
+  project.redis.partition.size: 50000
+  project.bolt.parallelism: 10
+# MQ conf
+  project.mq.broker.url: "tcp://10.221.247.50:61616"
+  project.mq.queue.name: "Q_EVENT_PMCA_FILE2"
+
+  topology.worker.childopts: "-server -Xms4g -Xmx4g -Xmn2g -XX:PermSize=96m -XX:MaxPermSize=96m -XX:+UseParallelGC -XX:+UseParallelOldGC -XX:ParallelGCThreads=4 -XX:+PrintGCTimeStamps -XX:+PrintGCDetails -Xloggc:/tmp/gc-%ID%.log -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=5 -XX:GCLogFileSize=1m"
+  topology.fall.back.on.java.serialization: false
+  topology.skip.missing.kryo.registrations: false
+  topology.acker.executors: 0
+  topology.executor.send.buffer.size: 2048
+  topology.executor.receive.buffer.size: 2048
+  topology.receiver.buffer.size: 64
+  topology.transfer.buffer.size: 8192
+  storm.messaging.netty.sync.mode: false
+  topology.buffer.size.limited: false
+
+  topology.backpressure.enable: true
+  backpressure.disruptor.high.watermark: 0.9
+  backpressure.disruptor.low.watermark:  0.4
+
+  csvparser.selector.class: com.eastcom.csfb.storm.base.TopicCSVParsers
+
+#  worker.childopts: "-Xmx3g"
+  topology.metrics.consumer.register:
+    - class: "org.apache.storm.metric.LoggingMetricsConsumer"
+      parallelism.hint: 1
+
+# kafka conf
+  # common
+  kafka.group.id: csfb_topology
+  kafka.bootstrap.servers: "10.11.94.54:6667,10.11.94.62:6667,10.11.94.70:6667,10.11.94.77:6667,10.11.94.177:6667,10.11.94.179:6667,10.11.94.183:6667,10.11.94.185:6667,10.11.94.186:6667,10.11.94.190:6667,10.11.94.192:6667,10.11.94.107:6667,10.11.94.100:6667,10.11.94.92:6667,10.11.94.84:6667,10.11.94.156:6667"
+  # reader
+  kafka.topic.names: ["r_lte_s1_mme", "r_lte_sgs", "r_mc_call", "r_mc_paging", "r_mc_location"]
+  kafka.key.deserializer: org.apache.kafka.common.serialization.ByteArrayDeserializer
+  kafka.value.deserializer: org.apache.kafka.common.serialization.ByteArrayDeserializer
+  kafka.auto.offset.reset: latest
+  # writer
+  project.bolt.kafka.writer.topic: r_csfb
+  kafka.acks: 1
+  kafka.retries: 1
+  kafka.batch.size: 16384
+  kafka.linger.ms: 0
+  kafka.buffer.memory: 33554432
+  kafka.key.serializer: org.apache.kafka.common.serialization.StringSerializer
+  kafka.value.serializer: org.apache.kafka.common.serialization.StringSerializer
+
+
+includes:
+  - resource: false
+    file: "../flux/redisPool.yaml"
+    override: false
+  - resource: false
+    file: "../flux/serializer.yaml"
+    override: false
+  - resource: false
+    file: "../flux/hdfs-conf.yaml"
+    override: false
+
+#topologySource:
+#    className: "com.eastcom.csfb.storm.topo.CsfbTopology"
+#    methodName: "getCsfbTopology"
+
+
+
+# spout definitions
+spouts:
+  - id: "csfbSpout"
+    className: "com.eastcom.csfb.storm.topo.CsfbSpout"
+    parallelism: 10
+
+# bolt definitions
+bolts:
+  - id: "extractSignalBolt"
+    className: "com.eastcom.csfb.storm.topo.ExtractSignalBolt"
+    parallelism: 10
+  - id: "outputKafkaBolt"
+    className: "com.eastcom.csfb.storm.topo.OutputKafkaBolt"
+    parallelism: 10
+
+#stream definitions
+streams:
+  - name: "csfbSpout --> extractSignalBolt"
+    from: "csfbSpout"
+    to: "extractSignalBolt"
+    grouping:
+      type: FIELDS
+      args: ["partition"]
+
+  - name: "extractSignalBolt --> outputKafkaBolt"
+    from: "extractSignalBolt"
+    to: "outputKafkaBolt"
+    grouping:
+      type: SHUFFLE

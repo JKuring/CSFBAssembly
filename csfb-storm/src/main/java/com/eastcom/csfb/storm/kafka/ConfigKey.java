@@ -33,6 +33,16 @@ public class ConfigKey {
     public static final String KAFKA_VALUE_DESERIALIZER = "kafka.value.deserializer";
     public static final String KAFKA_AUTO_OFFSET_RESET = "kafka.auto.offset.reset";
 
+    public static final String PROJECT_SPOUT_KAFKA_WRITER_THREADS = "project.spout.kafka.writer.threads";
+    public static final String PROJECT_BOLT_KAFKA_WRITER_TOPIC = "project.bolt.kafka.writer.topic";
+    public static final String KAFKA_ACKS = "kafka.acks";
+    public static final String KAFKA_RETRIES = "kafka.retries";
+    public static final String KAFKA_BATCH_SIZE = "kafka.batch.size";
+    public static final String KAFKA_LINGER_MS = "kafka.linger.ms";
+    public static final String KAFKA_BUFFER_MEMORY = "kafka.buffer.memory";
+    public static final String KAFKA_KEY_SERIALIZER = "kafka.key.serializer";
+    public static final String KAFKA_VALUE_SERIALIZER = "kafka.value.serializer";
+
 
 //    public static final String FILE_QUEUE_NAME = "file.queue.name";
 //    public static final String FILE_TOPIC_NAMES = "file.topic.names";
