@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -39,7 +40,6 @@ public class ExtractSignalBolt extends BaseRichBolt {
 
     private static final int MAXIMUM_CACHE_SIZE = 1000000;
     private static final int MAXIMUM_CACHE_TIME = 60;
-    private static final int MAXIMUM_TREAD_NUM = 30;
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private OutputCollector collector;
     private LoadingCache<String, LinkedHashMap> csfbSignalCache;
@@ -61,11 +61,9 @@ public class ExtractSignalBolt extends BaseRichBolt {
         try {
             //存放时，若为TUA则存放完成后，算法计算，然后发送，删除。
             final ExtractSignalBolt extractSignalBolt = this;
-            String csfbImsi = extractSignalBolt.putCsfbSignalCache(input.getValueByField("csvData"));
+            String csfbImsi = this.putCsfbSignalCache(input.getValueByField("csvData"));
             if (csfbImsi != null) {
-                final LinkedHashMap<String, UserCommon> csfbSignal = this.csfbSignalCache.get(csfbImsi);
-                // delete data ,when make sure emit data
-                this.csfbSignalCache.invalidate(csfbImsi);
+                final LinkedHashMap<String, UserCommon> csfbSignal = getCsfbSignalMap(csfbImsi);
                 this.executor.execute(new Runnable() {
                     @Override
                     public void run() {
@@ -89,6 +87,13 @@ public class ExtractSignalBolt extends BaseRichBolt {
         } catch (Exception e) {
             logger.error("execute() " + e.getMessage());
         }
+    }
+
+    private synchronized LinkedHashMap<String, UserCommon> getCsfbSignalMap(String csfbImsi) throws ExecutionException {
+        LinkedHashMap csfbSignal = this.csfbSignalCache.get(csfbImsi);
+        // delete data ,when make sure emit data
+        this.csfbSignalCache.invalidate(csfbImsi);
+        return csfbSignal;
     }
 
     /**

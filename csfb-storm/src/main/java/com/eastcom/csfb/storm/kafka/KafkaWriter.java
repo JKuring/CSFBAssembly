@@ -29,10 +29,10 @@ public class KafkaWriter<K, V> {
 
         checkArgument(conf.get(ConfigKey.PROJECT_BOLT_KAFKA_WRITER_TOPIC) != null);
         checkArgument(conf.get(ConfigKey.KAFKA_BOOTSTRAP_SERVERS) != null);
-        checkArgument(conf.get(ConfigKey.KAFKA_BATCH_SIZE) != null);
-        checkArgument(conf.get(ConfigKey.KAFKA_BUFFER_MEMORY) != null);
-        checkArgument(conf.get(ConfigKey.KAFKA_KEY_SERIALIZER) != null);
-        checkArgument(conf.get(ConfigKey.KAFKA_VALUE_SERIALIZER) != null);
+//        checkArgument(conf.get(ConfigKey.KAFKA_BATCH_SIZE) != null);
+//        checkArgument(conf.get(ConfigKey.KAFKA_BUFFER_MEMORY) != null);
+//        checkArgument(conf.get(ConfigKey.KAFKA_KEY_SERIALIZER) != null);
+//        checkArgument(conf.get(ConfigKey.KAFKA_VALUE_SERIALIZER) != null);
 
 //        Producer<String, String> producer = new KafkaProducer<>(props);
 //        for(int i = 0; i < 100; i++)
@@ -45,7 +45,7 @@ public class KafkaWriter<K, V> {
 
 
         this.topicName = MapUtils.getString(conf, ConfigKey.PROJECT_BOLT_KAFKA_WRITER_TOPIC);
-        this.kafkaWriterThreadsNum = MapUtils.getIntValue(conf, ConfigKey.PROJECT_SPOUT_KAFKA_WRITER_THREADS);
+        this.kafkaWriterThreadsNum = MapUtils.getIntValue(conf, ConfigKey.PROJECT_BOLT_KAFKA_WRITER_THREADS);
     }
 
     public Producer<K, V> getProducer() {

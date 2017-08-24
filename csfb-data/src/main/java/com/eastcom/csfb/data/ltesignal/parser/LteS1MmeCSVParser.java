@@ -13,12 +13,12 @@ public class LteS1MmeCSVParser extends CSVParser<LteS1Mme> {
 
     @Override
     public int getTotalFields() {
-        return 135;
+        return 174;
     }
 
     @Override
     public int getRequiredFields() {
-        return 134;
+        return 167;
     }
 
     @Override
@@ -46,7 +46,7 @@ public class LteS1MmeCSVParser extends CSVParser<LteS1Mme> {
         lteS1Mme.setBearer1Status(toInt(csvArr.get(41)));
         lteS1Mme.setBearer1RequestCause(toInt(csvArr.get(42)));
         lteS1Mme.setBearer1FailureCause(toInt(csvArr.get(43)));
-        lteS1Mme.setCsfbResponse(toInt(csvArr.get(133)));
+        lteS1Mme.setCsfbResponse(toInt(csvArr.get(166)));
         return lteS1Mme;
     }
 

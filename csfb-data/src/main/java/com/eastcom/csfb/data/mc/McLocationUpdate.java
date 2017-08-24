@@ -131,4 +131,18 @@ public class McLocationUpdate implements UserCommon {
         this.eventCause = eventCause;
     }
 
+    @Override
+    public String toString() {
+        return "McLocationUpdate{" +
+                "startTime=" + startTime +
+                ", endTime=" + endTime +
+                ", olac=" + olac +
+                ", oci=" + oci +
+                ", dlac=" + dlac +
+                ", dci=" + dci +
+                ", imsi='" + imsi + '\'' +
+                ", result=" + result +
+                ", eventCause=" + eventCause +
+                '}';
+    }
 }

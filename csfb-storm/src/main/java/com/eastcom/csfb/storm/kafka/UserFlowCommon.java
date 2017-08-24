@@ -5,7 +5,7 @@ package com.eastcom.csfb.storm.kafka;
  *
  * @author louyj
  */
-
+@Deprecated
 public interface UserFlowCommon {
 
     /**

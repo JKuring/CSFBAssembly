@@ -13,6 +13,7 @@ import java.util.Set;
 
 import static com.eastcom.csfb.storm.base.pubsub.Channels.ALL_STORM_CHANNEL;
 
+@Deprecated
 public class PubSubListener extends JedisPubSub implements Runnable {
 
     private Logger logger = LoggerFactory.getLogger(getClass());

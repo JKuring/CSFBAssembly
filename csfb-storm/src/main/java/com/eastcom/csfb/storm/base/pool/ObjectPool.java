@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.ArrayBlockingQueue;
 
+@Deprecated
 public class ObjectPool<T> {
 
     final Logger logger = LoggerFactory.getLogger(this.getClass());

@@ -82,7 +82,6 @@
                     <groupId>com.esotericsoftware</groupId>
                 </exclusion>
             </exclusions>
-            <!--<systemPath>${project.basedir}\target\csfb-data-1.0.jar</systemPath>-->
         </dependency>
         <!-- storm -->
         <dependency>
@@ -176,34 +175,6 @@
             <!--<scope>provided</scope>-->
         <!--</dependency>-->
         <!--<dependency>-->
-            <!--<groupId>org.apache.hbase</groupId>-->
-            <!--<artifactId>hbase-client</artifactId>-->
-            <!--<version>1.1.2</version>-->
-            <!--<scope>provided</scope>-->
-            <!--<exclusions>-->
-                <!--<exclusion>-->
-                    <!--<groupId>com.google.guava</groupId>-->
-                    <!--<artifactId>guava</artifactId>-->
-                <!--</exclusion>-->
-                <!--<exclusion>-->
-                    <!--<groupId>log4j</groupId>-->
-                    <!--<artifactId>log4j</artifactId>-->
-                <!--</exclusion>-->
-                <!--<exclusion>-->
-                    <!--<groupId>org.slf4j</groupId>-->
-                    <!--<artifactId>slf4j-api</artifactId>-->
-                <!--</exclusion>-->
-                <!--<exclusion>-->
-                    <!--<groupId>org.slf4j</groupId>-->
-                    <!--<artifactId>slf4j-log4j12</artifactId>-->
-                <!--</exclusion>-->
-                <!--<exclusion>-->
-                    <!--<artifactId>junit</artifactId>-->
-                    <!--<groupId>junit</groupId>-->
-                <!--</exclusion>-->
-            <!--</exclusions>-->
-        <!--</dependency>-->
-        <!--<dependency>-->
             <!--<groupId>com.mchange</groupId>-->
             <!--<artifactId>c3p0</artifactId>-->
             <!--<version>0.9.5</version>-->
@@ -268,16 +239,16 @@
             <version>1.7.10</version>
         </dependency>
 
-        <!--<dependency>-->
-            <!--<groupId>com.eastcom.csfb</groupId>-->
-            <!--<artifactId>csfb-data</artifactId>-->
-            <!--<version>1.0</version>-->
-        <!--</dependency>-->
-
         <dependency>
             <groupId>org.apache.kafka</groupId>
             <artifactId>kafka-clients</artifactId>
             <version>0.10.1.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.esotericsoftware</groupId>
+            <artifactId>kryo</artifactId>
+            <version>3.0.3</version>
         </dependency>
     </dependencies>
 </project>

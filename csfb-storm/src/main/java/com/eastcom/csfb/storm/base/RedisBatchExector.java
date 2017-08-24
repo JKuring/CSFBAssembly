@@ -1,6 +1,7 @@
 package com.eastcom.csfb.storm.base;
 
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.exceptions.JedisConnectionException;
 import redis.clients.util.Pool;
 
 import java.io.Closeable;
@@ -16,18 +17,25 @@ public class RedisBatchExector implements Closeable {
 
     private int batchSize = 1000;
 
+    private Pool<Jedis> jedisPool;
+
     public RedisBatchExector(Pool<Jedis> jedisPool) {
-        jp = new JedisPipeline(jedisPool);
+        this.jedisPool = jedisPool;
+        init();
     }
 
     public RedisBatchExector(Pool<Jedis> jedisPool, int batchSize) {
+        this.jedisPool = jedisPool;
         this.batchSize = batchSize;
-        jp = new JedisPipeline(jedisPool);
+        init();
     }
 
-    public void open() {
-        jp.open();
+
+    public void init() {
+        this.jp = new JedisPipeline(this.jedisPool);
+        this.jp.open();
     }
+
 
     public void setBatchSize(int batchSize) {
         this.batchSize = batchSize;
@@ -84,9 +92,23 @@ public class RedisBatchExector implements Closeable {
         incr();
     }
 
+    /**
+     * 添加异常处理，对于一个pipeline，出现异常需要重新从池中获取。
+     *
+     * @param key
+     * @param score
+     * @param member
+     */
     public void zadd(byte[] key, double score, byte[] member) {
-        jp.getPipeline().zadd(key, score, member);
-        incr();
+        try {
+            jp.getPipeline().zadd(key, score, member);
+            incr();
+        } catch (JedisConnectionException exception) {
+//            this.jedisPool.returnBrokenResource(this.jp.getJedis());
+            jp.broken();
+            jp.open();
+            zadd(key, score, member);
+        }
     }
 
     public void zadd(String key, double score, String member) {
@@ -111,7 +133,6 @@ public class RedisBatchExector implements Closeable {
         incr();
     }
 
-    @Override
     public void close() {
         jp.close(pSize);
     }

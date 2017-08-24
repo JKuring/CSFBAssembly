@@ -21,4 +21,6 @@ public interface UserCommon {
 
     public long getEndTime();
 
+    public String toString();
+
 }

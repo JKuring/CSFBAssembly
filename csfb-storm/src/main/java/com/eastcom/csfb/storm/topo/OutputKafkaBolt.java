@@ -69,12 +69,12 @@ public class OutputKafkaBolt extends BaseRichBolt {
             try {
                 Thread.sleep(2);
             } catch (InterruptedException e1) {
-                execute(input);
+//                execute(input);
             }
         }
     }
 
-    private void sendToKafka(String data, Producer<String, String> producer, String topic) {
+    private synchronized void sendToKafka(String data, Producer<String, String> producer, String topic) {
         if (data != null) {
             producer.send(new ProducerRecord<String, String>(topic, data));
         }

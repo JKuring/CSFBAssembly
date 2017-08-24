@@ -2,6 +2,11 @@ package com.eastcom.csfb.storm.topo;
 
 import com.eastcom.csfb.data.CSVParser;
 import com.eastcom.csfb.data.UserCommon;
+import com.eastcom.csfb.data.ltesignal.LteS1Mme;
+import com.eastcom.csfb.data.ltesignal.LteSGs;
+import com.eastcom.csfb.data.mc.McCallEvent;
+import com.eastcom.csfb.data.mc.McLocationUpdate;
+import com.eastcom.csfb.data.mc.McPaging;
 import com.eastcom.csfb.storm.base.BeanFactory;
 import com.eastcom.csfb.storm.base.RedisBatchExector;
 import com.eastcom.csfb.storm.base.TopicCSVParsers;
@@ -68,7 +73,8 @@ public class CsfbSpout extends BaseRichSpout implements ReadHook {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private final String redisKey = "data:sort";
-    private final int bufferQueueSize = 2500;
+    private final int bufferQueueSize = 5000;
+    private final int interval = 1000;
     private SpoutOutputCollector collector;
     private BeanFactory beanFactory;
     private Pool<Jedis> jedisPool;
@@ -111,15 +117,11 @@ public class CsfbSpout extends BaseRichSpout implements ReadHook {
     public void open(Map conf, TopologyContext context, SpoutOutputCollector collector) {
         this.topicNames = (List<String>) conf.get(ConfigKey.PROJECT_SPOUT_FILE_TOPICS);
 
-        this.kryo = KryoUtils.create();
-
-
         this.beanFactory = new BeanFactory(conf);
         this.jedisPool = beanFactory.getJedisPool();
         this.collector = collector;
 
         this.redisBatchExector = new RedisBatchExector(jedisPool);
-        this.redisBatchExector.open();
 
         this.bufferQueue = new ArrayBlockingQueue<Values>(bufferQueueSize);
         this.partitionSize = MapUtils.getIntValue(conf, ConfigKey.PROJECT_REDIS_PARTITION_SIZE, 1000);
@@ -181,16 +183,31 @@ public class CsfbSpout extends BaseRichSpout implements ReadHook {
     }
 
     private void toRedisPartition(UserCommon csvObject) {
-        if (csvObject != null) {
+        long start_time = csvObject.getStartTime();
+        if (start_time != 0 && start_time + this.redisBufferMs > System.currentTimeMillis() + this.interval) {
             String imsi = csvObject.getImsi();
+            byte[] bs = null;
+//            logger.info("UserCommon csvObject: {}.",csvObject.toString());
             int imsiHash = hashFunction.newHasher().putString(imsi, Charsets.UTF_8).hash().asInt();
             // 根据imsi产生的hash，创建redis数据分区
             int partition = Math.abs(imsiHash % partitionSize);
             String key = toKey(redisKey, "{" + partition + "}");
-            byte[] bs = KryoUtils.serialize(kryo, csvObject);
-            long time = csvObject.getStartTime();
-            // 添加数据到zset中 jp.getPipeline().zadd(key, score, member);
-            redisBatchExector.zadd(encode(key), time, bs);
+            try {
+                try {
+                    bs = KryoUtils.serialize(KryoUtils.create(), csvObject);
+                } catch (Exception e) {
+                    logger.warn("serialize false, UserCommon csvObject: {}.", csvObject.toString());
+                    throw e;
+                }
+                try {
+                    // 添加数据到zset中 jp.getPipeline().zadd(key, score, member);
+                    redisBatchExector.zadd(encode(key), start_time, bs);
+                } catch (ArrayIndexOutOfBoundsException e) {
+                    logger.warn("Failed to add redis object, data size: {}, imsi: {}, start_time: {}.", bs.length, imsi, start_time, e.getMessage());
+                }
+            } catch (Exception e) {
+                logger.warn("Failed to add object to RedisPartition, imsi: {}, start_time: {}.", imsi, start_time, e.getMessage());
+            }
         }
     }
 
@@ -208,13 +225,13 @@ public class CsfbSpout extends BaseRichSpout implements ReadHook {
     public void putValues(BlockingQueue bufferQueue, Object data, String topicName) throws Exception {
         try {
             // 获取并初始化对象
-            UserCommon csvObject = (UserCommon) data;
-            csvObject = filter(csvObject);
-            toRedisPartition(csvObject);
+            if (data != null) {
+                UserCommon csvObject = (UserCommon) data;
+                csvObject = filter(csvObject);
+                toRedisPartition(csvObject);
+            }
         } catch (Exception e) {
-            redisBatchExector.broken();
-            DateUtils.sleep(100);
-            redisBatchExector.open();
+            logger.warn("putValues exception: " + e.getMessage());
             throw e;
         }
     }
@@ -234,28 +251,19 @@ public class CsfbSpout extends BaseRichSpout implements ReadHook {
      */
     private class FileReader extends Thread {
 
-//        private RedisBatchExector rbe;
-
-//        private Kryo kryo;
 
         public FileReader(String name) {
             super(name);
-//            kryo = KryoUtils.create();
         }
 
         @Override
         public void run() {
-            // according to JedisPool to create Jedis Pipeline.
-//            rbe = new RedisBatchExector(jedisPool);
-//            rbe.open();
             while (!this.isInterrupted()) {
                 try {
                     doRead();
                 } catch (Exception e) {
                     logger.error("", e);
-                    redisBatchExector.broken();
                     DateUtils.sleep(100);
-                    redisBatchExector.open();
                 }
             }
             redisBatchExector.close();
@@ -381,13 +389,17 @@ public class CsfbSpout extends BaseRichSpout implements ReadHook {
                 String key = toKey(redisKey, "{" + index + "}");
                 Set<byte[]> datas = fetchDatas(key, timeEnd);
                 for (byte[] data : datas) {
-                    UserCommon csvData = KryoUtils.deserialize(kryo, data);
-                    bufferQueue.put(new Values(csvData, index));
+                    try {
+                        UserCommon csvData = KryoUtils.deserialize(KryoUtils.create(), data);
+                        bufferQueue.put(new Values(csvData, index));
+                    } catch (Exception e) {
+                        logger.warn("Get data from redis.", e.getMessage());
+                    }
                 }
                 deleteDatas(key, timeEnd);
             }
+            DateUtils.sleep(interval);
             lastTime = timeEnd;
-            DateUtils.sleep(1000);
         }
 
         private Set<byte[]> fetchDatas(String key, long timeEnd) {
@@ -395,13 +407,13 @@ public class CsfbSpout extends BaseRichSpout implements ReadHook {
                 Set<byte[]> linkedSet = jedis.zrangeByScore(encode(key), lastTime, timeEnd);
                 return linkedSet;
             } catch (Exception ex) {
-                logger.error("fetch {} -- {}:{}:{}", ex.getMessage(), key, lastTime, timeEnd);
+                logger.debug("fetch {} -- {}:{}:{}", ex.getMessage(), key, lastTime, timeEnd);
                 return Collections.emptySet();
             }
         }
 
         /**
-         * 按照截至时间戳，删除指定的key数据
+         * 按照截至时间戳，删除指定的key数据，从0删到key
          *
          * @param key
          * @param timeEnd
@@ -410,7 +422,7 @@ public class CsfbSpout extends BaseRichSpout implements ReadHook {
             try (Jedis jedis = jedisPool.getResource()) {
                 jedis.zremrangeByScore(key, 0, timeEnd);
             } catch (Exception ex) {
-                logger.error("delete {} -- {}:{}:{}", ex.getMessage(), key, 0, timeEnd);
+                logger.debug("delete {} -- {}:{}:{}", ex.getMessage(), key, 0, timeEnd);
             }
         }
 
@@ -483,6 +495,7 @@ public class CsfbSpout extends BaseRichSpout implements ReadHook {
             }
         }
 
+        // get partition number
         private int findAvailSlot() {
             while (true) {
                 try {

@@ -124,4 +124,17 @@ public class McPaging implements UserCommon {
         return callingImsi;
     }
 
+    @Override
+    public String toString() {
+        return "McPaging{" +
+                "startTime=" + startTime +
+                ", endTime=" + endTime +
+                ", eventId=" + eventId +
+                ", callingImsi='" + callingImsi + '\'' +
+                ", calledImsi='" + calledImsi + '\'' +
+                ", pagingResptype=" + pagingResptype +
+                ", rspdur=" + rspdur +
+                ", xdrtype=" + xdrtype +
+                '}';
+    }
 }

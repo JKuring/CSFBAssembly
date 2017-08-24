@@ -1,8 +1,13 @@
 package com.eastcom.csfb.storm.base;
 
 import com.eastcom.csfb.storm.base.pool.RoundRobinJedisPool;
+import com.eastcom.csfb.storm.base.pool.RoundRobinJodisPool;
 import com.eastcom.csfb.storm.kafka.ConfigKey;
 import org.apache.commons.collections4.MapUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import redis.clients.jedis.Jedis;
+import redis.clients.util.Pool;
 
 import java.util.HashMap;
 import java.util.List;
@@ -11,13 +16,16 @@ import java.util.Properties;
 
 public class BeanFactory {
 
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
+
+
     public static final String KAFKA_PREFIX = "kafka.";
 
     public static final String JEDIS_PREFIX = "jedis.";
 
     public static final String PUBSUB_JEDIS_PREFIX = "pubsub.jedis.";
     private static DataCache dataCache;
-    private static RoundRobinJedisPool jedisPool;
+    private static Pool<Jedis> jedisPool;
     private static TopicCSVParsers topicCsvParser;
     private static Object LOCKER = "LOCKER";
     private Map<String, Object> stormConfig;
@@ -83,17 +91,31 @@ public class BeanFactory {
      * @return
      */
     @SuppressWarnings("unchecked")
-    public RoundRobinJedisPool getJedisPool() {
+    public Pool<Jedis> getJedisPool() {
         synchronized (LOCKER) {
             if (jedisPool != null) {
                 return jedisPool;
             }
             Map<String, Object> props = mapPrefix(JEDIS_PREFIX);
-            Number minIdle = (Number) props.get("minIdle");
-            Number maxTotal = (Number) props.get("maxTotal");
-            List<String> addresses = (List<String>) props.get("addresses");
-            String password = (String) props.get("password");
-            jedisPool = new RoundRobinJedisPool(addresses, password, minIdle.intValue(), maxTotal.intValue());
+
+            if (props.get("pool.zookeeper.address") == null) {
+                Number minIdle = (Number) props.get("minIdle");
+                Number maxTotal = (Number) props.get("maxTotal");
+                List<String> addresses = (List<String>) props.get("addresses");
+                String password = (String) props.get("password");
+                jedisPool = new RoundRobinJedisPool(addresses, password, minIdle.intValue(), maxTotal.intValue());
+            } else if (props.get("pool.zookeeper.address") != null) {
+                String zkConnect = MapUtils.getString(props, "pool.zookeeper.address");
+                int zkTimeout = MapUtils.getIntValue(props, "pool.zookeeper.timeout", 30_000);
+                String clusterName = MapUtils.getString(props, "pool.cluster");
+                String password = MapUtils.getString(props, "pool.password");
+                int maxTotal = MapUtils.getInteger(props, "pool.maxtotal", 100);
+                try {
+                    jedisPool = new RoundRobinJodisPool(zkConnect, zkTimeout, clusterName, password, maxTotal);
+                } catch (Exception e) {
+                    logger.error("Failed to create redis pool, exception: {}.", e.getMessage());
+                }
+            }
             return jedisPool;
         }
     }

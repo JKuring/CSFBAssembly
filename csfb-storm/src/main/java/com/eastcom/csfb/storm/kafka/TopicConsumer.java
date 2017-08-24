@@ -9,7 +9,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class TopicConsumer<QV> extends Thread {
+public abstract class TopicConsumer<QV> extends Thread {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -18,13 +18,26 @@ public class TopicConsumer<QV> extends Thread {
     private ReadHook<QV> readHook;
     private ITopicCsvParser topicCsvParser;
 
-    public TopicConsumer(String name, Consumer<byte[], byte[]> consumer, ReadHook<QV> readHook,
-                         ITopicCsvParser topicCsvParser) {
+    public TopicConsumer(String name, ReadHook<QV> readHook, ITopicCsvParser topicCsvParser) {
         super(name);
-        this.consumer = consumer;
         this.readHook = readHook;
         this.topicCsvParser = topicCsvParser;
+        this.resetConsumer();
     }
+
+    private void resetConsumer() {
+        logger.warn("Reset kafka consumer ...");
+        if (this.consumer != null) {
+            try {
+                this.consumer.close();
+            } catch (Exception e) {
+                logger.error("", e);
+            }
+        }
+        this.consumer = createConsumer();
+    }
+
+    protected abstract Consumer<byte[], byte[]> createConsumer();
 
     @Override
     public void run() {
@@ -35,11 +48,12 @@ public class TopicConsumer<QV> extends Thread {
             } catch (InterruptedException e) {
                 this.interrupt();
             } catch (Throwable e) {
-                logger.error("", e);
+                resetConsumer();
             }
             DateUtils.sleep(5);
         }
-        logger.warn("线程{}中断退出。", this.getName());
+        this.consumer.close();
+        logger.warn("Thread {} interrupted .", this.getName());
     }
 
     private void fillBuffer() throws Exception {
@@ -50,33 +64,10 @@ public class TopicConsumer<QV> extends Thread {
             }
             for (ConsumerRecord<byte[], byte[]> record : records) {
                 String topicName = record.topic();
-                if (topicName.startsWith("r_")) {
-                    topicName = topicName.substring(2);
-                }
                 String line = new String(record.value(), Charsets.UTF_8);
-                CSVParser<?> csvParser = getCSVParser(topicName);
-                Object csvObject = toObject(topicName, csvParser, line, null);
-                if (csvObject != null) {
-                    readHook.afterParse(csvObject);
-                    readHook.putValues(readHook.getBufferQueue(), csvObject, topicName);
-                    readHook.afterEmit(topicName, csvObject, line);
-                }
+                RecordProcessor.processRecord(topicName, line, topicCsvParser, readHook);
             }
         }
-    }
-
-    protected CSVParser<?> getCSVParser(String topicName) {
-        return topicCsvParser.getCSVParser(topicName);
-    }
-
-    protected Object toObject(String topic, CSVParser<?> csvParser, String line, String uri) {
-        Object data = null;
-        if (csvParser != null) {
-            data = csvParser.parse(line, uri);
-        } else {
-            data = topicCsvParser.parse(topic, line, uri);
-        }
-        return data;
     }
 
 }

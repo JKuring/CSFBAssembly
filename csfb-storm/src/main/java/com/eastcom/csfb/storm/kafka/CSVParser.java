@@ -22,6 +22,7 @@ import java.util.List;
  *
  * @param <T>
  */
+@Deprecated
 public abstract class CSVParser<T> {
 
     public static final char separator = '|';

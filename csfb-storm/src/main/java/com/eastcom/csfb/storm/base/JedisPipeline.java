@@ -4,7 +4,7 @@ import redis.clients.jedis.Jedis;
 import redis.clients.jedis.Pipeline;
 import redis.clients.util.Pool;
 
-public class JedisPipeline {
+public class JedisPipeline implements Cloneable {
 
     protected Pool<Jedis> jedisPool;
 
@@ -26,6 +26,11 @@ public class JedisPipeline {
         jedisPool.returnResource(jedis);
         jedis = jedisPool.getResource();
         pipeline = jedis.pipelined();
+    }
+
+    public void close() {
+        pipeline.sync();
+        jedisPool.returnResource(jedis);
     }
 
     public void close(int size) {

@@ -486,4 +486,44 @@ public class McCallEvent implements UserCommon {
     public void setRspdur(int rspdur) {
         this.rspdur = rspdur;
     }
+
+    @Override
+    public String toString() {
+        return "McCallEvent{" +
+                "startTime=" + startTime +
+                ", endTime=" + endTime +
+                ", eventId=" + eventId +
+                ", lac=" + lac +
+                ", ci=" + ci +
+                ", result=" + result +
+                ", callingNum='" + callingNum + '\'' +
+                ", calledNum='" + calledNum + '\'' +
+                ", callingimsi='" + callingimsi + '\'' +
+                ", calledimsi='" + calledimsi + '\'' +
+                ", callingTmsi='" + callingTmsi + '\'' +
+                ", calledTmsi='" + calledTmsi + '\'' +
+                ", eventCause=" + eventCause +
+                ", eventResult=" + eventResult +
+                ", assgCause=" + assgCause +
+                ", disconCause=" + disconCause +
+                ", clearCause=" + clearCause +
+                ", relCauseValue=" + relCauseValue +
+                ", setupResult=" + setupResult +
+                ", cmreqoffset=" + cmreqoffset +
+                ", cmrspoffset=" + cmrspoffset +
+                ", authreqOffset=" + authreqOffset +
+                ", assreqOffset=" + assreqOffset +
+                ", setupOffset=" + setupOffset +
+                ", cpgoffset=" + cpgoffset +
+                ", cpgrspoffset=" + cpgrspoffset +
+                ", connOffset=" + connOffset +
+                ", connackoffset=" + connackoffset +
+                ", disconnOffset=" + disconnOffset +
+                ", alertOffset=" + alertOffset +
+                ", relOffset=" + relOffset +
+                ", clearOffset=" + clearOffset +
+                ", pagingResptype=" + pagingResptype +
+                ", rspdur=" + rspdur +
+                '}';
+    }
 }

@@ -33,7 +33,7 @@ public class ConfigKey {
     public static final String KAFKA_VALUE_DESERIALIZER = "kafka.value.deserializer";
     public static final String KAFKA_AUTO_OFFSET_RESET = "kafka.auto.offset.reset";
 
-    public static final String PROJECT_SPOUT_KAFKA_WRITER_THREADS = "project.spout.kafka.writer.threads";
+    public static final String PROJECT_BOLT_KAFKA_WRITER_THREADS = "project.bolt.kafka.writer.threads";
     public static final String PROJECT_BOLT_KAFKA_WRITER_TOPIC = "project.bolt.kafka.writer.topic";
     public static final String KAFKA_ACKS = "kafka.acks";
     public static final String KAFKA_RETRIES = "kafka.retries";

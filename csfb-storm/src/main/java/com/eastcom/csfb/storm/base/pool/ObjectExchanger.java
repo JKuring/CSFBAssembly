@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import java.util.concurrent.Exchanger;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+@Deprecated
 public class ObjectExchanger<T> {
 
     final Logger logger = LoggerFactory.getLogger(this.getClass());

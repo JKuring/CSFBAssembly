@@ -39,18 +39,31 @@ public class KafkaReader<QV> {
         checkArgument(conf.get(ConfigKey.KAFKA_KEY_DESERIALIZER) != null);
         checkArgument(conf.get(ConfigKey.KAFKA_VALUE_DESERIALIZER) != null);
 
-        Properties configProps = getKafkaConsumerConfig(conf);
+        final Properties configProps = getKafkaConsumerConfig(conf);
 
-        List<String> topics = (List<String>) conf.get(ConfigKey.KAFKA_TOPIC_NAMES);
+        final List<String> topics = (List<String>) conf.get(ConfigKey.KAFKA_TOPIC_NAMES);
         Integer threadNum = MapUtils.getInteger(conf, ConfigKey.PROJECT_SPOUT_KAFKA_READER_THREADS, 3);
 
         this.readers = new ArrayList<>();
+//        for (int i = 0; i < threadNum; i++) {
+//            Consumer<byte[], byte[]> consumer = new KafkaConsumer<>(configProps);
+//            consumer.subscribe(topics);
+//
+//            String threadName = "kafka-reader-" + i;
+//            TopicConsumer reader = new TopicConsumer(threadName, consumer, readHook, topicCsvParser);
+//            this.readers.add(reader);
+//            reader.start();
+//        }
         for (int i = 0; i < threadNum; i++) {
-            Consumer<byte[], byte[]> consumer = new KafkaConsumer<>(configProps);
-            consumer.subscribe(topics);
-
             String threadName = "kafka-reader-" + i;
-            TopicConsumer reader = new TopicConsumer(threadName, consumer, readHook, topicCsvParser);
+            TopicConsumer reader = new TopicConsumer(threadName, readHook, topicCsvParser) {
+                protected Consumer createConsumer() {
+                    Consumer<byte[], byte[]> consumer = new KafkaConsumer<>(configProps);
+                    consumer.subscribe(topics);
+                    return consumer;
+                }
+
+            };
             this.readers.add(reader);
             reader.start();
         }

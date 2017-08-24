@@ -33,12 +33,12 @@ public class KryoUtils {
     public static Kryo create() {
         try {
             Kryo kryo = new Kryo();
-            kryo.register(LteS1Mme.class, new LteS1MmeSerializer());
-            kryo.register(LteSGs.class, new LteSgsSerializer());
-            kryo.register(McCallEvent.class, new McCallSerializer());
-            kryo.register(McLocationUpdate.class, new McLocationUpdateSerializer());
-            kryo.register(McPaging.class, new McPagingSerializer());
-            kryo.setReferences(false);
+            kryo.register(LteS1Mme.class, new LteS1MmeSerializer(), 1);
+            kryo.register(LteSGs.class, new LteSgsSerializer(), 2);
+            kryo.register(McCallEvent.class, new McCallSerializer(), 3);
+            kryo.register(McLocationUpdate.class, new McLocationUpdateSerializer(), 4);
+            kryo.register(McPaging.class, new McPagingSerializer(), 5);
+//            kryo.setReferences(false);
             return kryo;
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -46,30 +46,29 @@ public class KryoUtils {
     }
 
     /**
-     * 序列化对象obj
+     * 序列化输出格式
      *
-     * @param kryo
-     * @param obj
-     * @return
+     * @param kryo   Kryo handle
+     * @param object Object
+     * @return byte array
      */
-    public static byte[] serialize(Kryo kryo, Object obj) {
+    public static byte[] serialize(Kryo kryo, Object object) {
         Output output = new Output(1000, Integer.MAX_VALUE);
-        kryo.writeClassAndObject(output, obj);
+        kryo.writeClassAndObject(output, object);
         output.close();
         return output.toBytes();
     }
 
     /**
-     * 反序列化
+     * 反序列化输入格式
      *
-     * @param kryo
-     * @param bs
-     * @return
+     * @param kryo Kryo handle
+     * @param data data
+     * @param <T>  Object type
+     * @return Object
      */
-    @SuppressWarnings("unchecked")
-    public static <T> T deserialize(Kryo kryo, byte[] bs) {
-        T obj = (T) kryo.readClassAndObject(new Input(bs));
-        return obj;
+    public static <T> T deserialize(Kryo kryo, byte[] data) {
+        return (T) kryo.readClassAndObject(new Input(data));
     }
 
 }

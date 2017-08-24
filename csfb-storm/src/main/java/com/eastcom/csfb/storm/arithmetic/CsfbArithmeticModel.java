@@ -23,7 +23,6 @@ public class CsfbArithmeticModel implements CsfbDataModel, Serializable {
     public static final long serialVersionUID = 1L;
     private static final int FALSE_CODE = -1;
     private static final Logger logger = LoggerFactory.getLogger(CsfbArithmeticModel.class);
-    private Csfb csfb;
     // Csfb Signal Map
     private LinkedHashMap<String, UserCommon> csfbSignal;
     // Exception Code
@@ -43,7 +42,6 @@ public class CsfbArithmeticModel implements CsfbDataModel, Serializable {
 
     public CsfbArithmeticModel createModel(LinkedHashMap<String, UserCommon> csfbSignal) {
         this.csfbSignal = csfbSignal;
-        this.csfb = new Csfb();
         return this;
     }
 
@@ -52,94 +50,95 @@ public class CsfbArithmeticModel implements CsfbDataModel, Serializable {
         if (filter()) {
             return null;
         }
-        this.csfb.setBeginTime(this.getBeginTime());
-        this.csfb.setEndTime(this.getEndTime());
-        this.csfb.setCallType(this.getCallType());
-        this.csfb.setAlertingFlag(this.getAlertingFlag());
-        this.csfb.setTAC(this.getTAC());
-        this.csfb.setECI(this.getECI());
-        this.csfb.setLAC(this.getLAC());
-        this.csfb.setCI(this.getCI());
-        this.csfb.setIMSI(this.getIMSI());
-        this.csfb.setIMEI(this.getIMEI());
-        this.csfb.setIMEI_TAC(this.getIMEI_TAC());
-        this.csfb.setMSC_ID(this.getMSC_ID());
-        this.csfb.setMME_ID(this.getMME_ID());
-        this.csfb.setENB_ID(this.getENB_ID());
-        this.csfb.setCMServiceRequestTime(this.getCMServiceRequestTime());
-        this.csfb.setPagingRequestTime(this.getPagingRequestTime());
-        this.csfb.setUEContextReleaseTime(this.getUEContextReleaseTime());
-        this.csfb.setAlertingTime(this.getAlertingTime());
-        this.csfb.setMcCallEndTime(this.getMcCallEndTime());
-        this.csfb.setBackTime(this.getBackTime());
-        this.csfb.setPagingLong(this.getPagingLong());
-        this.csfb.setFallbackLong(this.getFallbackLong());
-        this.csfb.setBackLong(this.getBackLong());
-        this.csfb.setE2ELong(this.getE2ELong());
-        this.csfb.setMTLong(this.getMTLong());
-        this.csfb.setMOLong(this.getMOLong());
-        this.csfb.setMONum(this.getMONum());
-        this.csfb.setMTNum(this.getMTNum());
-        this.csfb.setMOSuccNum(this.getMOSuccNum());
-        this.csfb.setMTSuccNum(this.getMTSuccNum());
-        this.csfb.setPagingNum(this.getPagingNum());
-        this.csfb.setPagingSuccNum(this.getPagingSuccNum());
-        this.csfb.setCallServiceNum(this.getCallServiceNum());
-        this.csfb.setCallServiceSuccNum(this.getCallServiceSuccNum());
-        this.csfb.setFallbackNum(this.getFallbackNum());
-        this.csfb.setFallbackSuccNum(this.getFallbackSuccNum());
-        this.csfb.setCallSetupNum(this.getCallSetupNum());
-        this.csfb.setCallSetupSuccNum(this.getCallSetupSuccNum());
-        this.csfb.setCallAlertingNum(this.getCallAlertingNum());
-        this.csfb.setCallAlertingSuccNum(this.getCallAlertingSuccNum());
-        this.csfb.setRetInFiveSec(this.getRetInFiveSec());
-        this.csfb.setRetInTwoMin(this.getRetInTwoMin());
-        this.csfb.setCallConnectNum(this.getCallConnectNum());
-        this.csfb.setCallDropNum(this.getCallDropNum());
-        this.csfb.setCallConnectSuccNum(this.getCallConnectSuccNum());
-        this.csfb.setLuFlag(this.getLuFlag());
-        this.csfb.setOlac(this.getOlac());
-        this.csfb.setOci(this.getOci());
-        this.csfb.setDlac(this.getDlac());
-        this.csfb.setDci(this.getDci());
-        this.csfb.setLuNum(this.getLuNum());
-        this.csfb.setLuSuccNum(this.getLuSuccNum());
-        this.csfb.setExtendServiceRequestTime(this.getExtendServiceRequestTime());
-        this.csfb.setMcPagingResponseTime(this.getMcPagingResponseTime());
-        this.csfb.setMcConnectTime(this.getMcConnectTime());
-        this.csfb.setReleaseTime(this.getReleaseTime());
-        this.csfb.setClearTime(this.getClearTime());
-        this.csfb.setTAUTime(this.getTAUTime());
-        this.csfb.setCallingNum(this.getCallingNum());
-        this.csfb.setCalledNum(this.getCalledNum());
-        this.csfb.setReturnSuccNum(this.getReturnSuccNum());
-        this.csfb.setSGsPagingNum(this.getSGsPagingNum());
-        this.csfb.setSGsPagingSuccNum(this.getSGsPagingSuccNum());
-        this.csfb.setSGsServiceNum(this.getSGsServiceNum());
-        this.csfb.setSGsServiceSuccNum(this.getSGsServiceSuccNum());
-        this.csfb.setS1PagingNum(this.getS1PagingNum());
-        this.csfb.setS1PagingSuccNum(this.getS1PagingSuccNum());
-        this.csfb.setS1ServiceNum(this.getS1ServiceNum());
-        this.csfb.setS1ServiceSuccNum(this.getS1ServiceSuccNum());
-        this.csfb.setS1ModifyNum(this.getS1ModifyNum());
-        this.csfb.setS1ModifySuccNum(this.getS1ModifySuccNum());
-        this.csfb.setS1ReleaseNum(this.getS1ReleaseNum());
-        this.csfb.setS1ReleaseSuccNum(this.getS1ReleaseSuccNum());
-        this.csfb.setAssignTime(this.getAssignTime());
-        this.csfb.setAssignReqNum(this.getAssignReqNum());
-        this.csfb.setAssignSuccNum(this.getAssignSuccNum());
-        this.csfb.setAuthTime(this.getAuthTime());
-        this.csfb.setAuthReqNum(this.getAuthReqNum());
-        this.csfb.setAuthSuccNum(this.getAuthSuccNum());
-        this.csfb.setCallServiceLong(this.getCallServiceLong());
-        this.csfb.setCallSetupLong(this.getCallSetupLong());
-        this.csfb.setCallAlertingLong(this.getCallAlertingLong());
-        this.csfb.setFirstErrorXDR(this.getFirstErrorXDR());
-        this.csfb.setCauseCode(this.getCauseCode());
-        this.csfb.setState(this.getState());
-        this.csfb.setInterruptXdr(this.getInterruptXdr());
+        Csfb csfb = new Csfb();
+        csfb.setBeginTime(this.getBeginTime());
+        csfb.setEndTime(this.getEndTime());
+        csfb.setCallType(this.getCallType());
+        csfb.setAlertingFlag(this.getAlertingFlag());
+        csfb.setTAC(this.getTAC());
+        csfb.setECI(this.getECI());
+        csfb.setLAC(this.getLAC());
+        csfb.setCI(this.getCI());
+        csfb.setIMSI(this.getIMSI());
+        csfb.setIMEI(this.getIMEI());
+        csfb.setIMEI_TAC(this.getIMEI_TAC());
+        csfb.setMSC_ID(this.getMSC_ID());
+        csfb.setMME_ID(this.getMME_ID());
+        csfb.setENB_ID(this.getENB_ID());
+        csfb.setCMServiceRequestTime(this.getCMServiceRequestTime());
+        csfb.setPagingRequestTime(this.getPagingRequestTime());
+        csfb.setUEContextReleaseTime(this.getUEContextReleaseTime());
+        csfb.setAlertingTime(this.getAlertingTime());
+        csfb.setMcCallEndTime(this.getMcCallEndTime());
+        csfb.setBackTime(this.getBackTime());
+        csfb.setPagingLong(this.getPagingLong());
+        csfb.setFallbackLong(this.getFallbackLong());
+        csfb.setBackLong(this.getBackLong());
+        csfb.setE2ELong(this.getE2ELong());
+        csfb.setMTLong(this.getMTLong());
+        csfb.setMOLong(this.getMOLong());
+        csfb.setMONum(this.getMONum());
+        csfb.setMTNum(this.getMTNum());
+        csfb.setMOSuccNum(this.getMOSuccNum());
+        csfb.setMTSuccNum(this.getMTSuccNum());
+        csfb.setPagingNum(this.getPagingNum());
+        csfb.setPagingSuccNum(this.getPagingSuccNum());
+        csfb.setCallServiceNum(this.getCallServiceNum());
+        csfb.setCallServiceSuccNum(this.getCallServiceSuccNum());
+        csfb.setFallbackNum(this.getFallbackNum());
+        csfb.setFallbackSuccNum(this.getFallbackSuccNum());
+        csfb.setCallSetupNum(this.getCallSetupNum());
+        csfb.setCallSetupSuccNum(this.getCallSetupSuccNum());
+        csfb.setCallAlertingNum(this.getCallAlertingNum());
+        csfb.setCallAlertingSuccNum(this.getCallAlertingSuccNum());
+        csfb.setRetInFiveSec(this.getRetInFiveSec());
+        csfb.setRetInTwoMin(this.getRetInTwoMin());
+        csfb.setCallConnectNum(this.getCallConnectNum());
+        csfb.setCallDropNum(this.getCallDropNum());
+        csfb.setCallConnectSuccNum(this.getCallConnectSuccNum());
+        csfb.setLuFlag(this.getLuFlag());
+        csfb.setOlac(this.getOlac());
+        csfb.setOci(this.getOci());
+        csfb.setDlac(this.getDlac());
+        csfb.setDci(this.getDci());
+        csfb.setLuNum(this.getLuNum());
+        csfb.setLuSuccNum(this.getLuSuccNum());
+        csfb.setExtendServiceRequestTime(this.getExtendServiceRequestTime());
+        csfb.setMcPagingResponseTime(this.getMcPagingResponseTime());
+        csfb.setMcConnectTime(this.getMcConnectTime());
+        csfb.setReleaseTime(this.getReleaseTime());
+        csfb.setClearTime(this.getClearTime());
+        csfb.setTAUTime(this.getTAUTime());
+        csfb.setCallingNum(this.getCallingNum());
+        csfb.setCalledNum(this.getCalledNum());
+        csfb.setReturnSuccNum(this.getReturnSuccNum());
+        csfb.setSGsPagingNum(this.getSGsPagingNum());
+        csfb.setSGsPagingSuccNum(this.getSGsPagingSuccNum());
+        csfb.setSGsServiceNum(this.getSGsServiceNum());
+        csfb.setSGsServiceSuccNum(this.getSGsServiceSuccNum());
+        csfb.setS1PagingNum(this.getS1PagingNum());
+        csfb.setS1PagingSuccNum(this.getS1PagingSuccNum());
+        csfb.setS1ServiceNum(this.getS1ServiceNum());
+        csfb.setS1ServiceSuccNum(this.getS1ServiceSuccNum());
+        csfb.setS1ModifyNum(this.getS1ModifyNum());
+        csfb.setS1ModifySuccNum(this.getS1ModifySuccNum());
+        csfb.setS1ReleaseNum(this.getS1ReleaseNum());
+        csfb.setS1ReleaseSuccNum(this.getS1ReleaseSuccNum());
+        csfb.setAssignTime(this.getAssignTime());
+        csfb.setAssignReqNum(this.getAssignReqNum());
+        csfb.setAssignSuccNum(this.getAssignSuccNum());
+        csfb.setAuthTime(this.getAuthTime());
+        csfb.setAuthReqNum(this.getAuthReqNum());
+        csfb.setAuthSuccNum(this.getAuthSuccNum());
+        csfb.setCallServiceLong(this.getCallServiceLong());
+        csfb.setCallSetupLong(this.getCallSetupLong());
+        csfb.setCallAlertingLong(this.getCallAlertingLong());
+        csfb.setFirstErrorXDR(this.getFirstErrorXDR());
+        csfb.setCauseCode(this.getCauseCode());
+        csfb.setState(this.getState());
+        csfb.setInterruptXdr(this.getInterruptXdr());
 
-        return this.csfb;
+        return csfb;
 
     }
 
@@ -1090,14 +1089,14 @@ public class CsfbArithmeticModel implements CsfbDataModel, Serializable {
 
     @Override
     public int getRetInFiveSec() {
-        if (csfb.getBackLong() < 5000) {
+        if (getBackLong() < 5000) {
             return 1;
         } else return 0;
     }
 
     @Override
     public int getRetInTwoMin() {
-        if (csfb.getBackLong() < 120000) {
+        if (getBackLong() < 120000) {
             return 1;
         } else return 0;
     }

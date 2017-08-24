@@ -290,4 +290,31 @@ public class LteS1Mme implements UserCommon {
         this.procedureStatus = procedureStatus;
     }
 
+    @Override
+    public String toString() {
+        return "LteS1Mme{" +
+                "length=" + length +
+                ", city='" + city + '\'' +
+                ", interFace=" + interFace +
+                ", xdrId='" + xdrId + '\'' +
+                ", rat=" + rat +
+                ", imsi='" + imsi + '\'' +
+                ", imei='" + imei + '\'' +
+                ", msisdn='" + msisdn + '\'' +
+                ", procedureType=" + procedureType +
+                ", startTime=" + startTime +
+                ", endTime=" + endTime +
+                ", procedureStatus=" + procedureStatus +
+                ", requestCause=" + requestCause +
+                ", failCauseCode=" + failCauseCode +
+                ", mmeIpAdd='" + mmeIpAdd + '\'' +
+                ", enbIpAdd='" + enbIpAdd + '\'' +
+                ", tac=" + tac +
+                ", cellId=" + cellId +
+                ", bearer1Status=" + bearer1Status +
+                ", bearer1RequestCause=" + bearer1RequestCause +
+                ", bearer1FailureCause=" + bearer1FailureCause +
+                ", csfbResponse=" + csfbResponse +
+                '}';
+    }
 }

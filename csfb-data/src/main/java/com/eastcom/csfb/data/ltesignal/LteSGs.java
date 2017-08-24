@@ -251,4 +251,28 @@ public class LteSGs implements UserCommon {
         this.serviceIndicator = serviceIndicator;
     }
 
+    @Override
+    public String toString() {
+        return "LteSGs{" +
+                "length=" + length +
+                ", city='" + city + '\'' +
+                ", interFace=" + interFace +
+                ", xdrId='" + xdrId + '\'' +
+                ", rat=" + rat +
+                ", imsi='" + imsi + '\'' +
+                ", imei='" + imei + '\'' +
+                ", msisdn='" + msisdn + '\'' +
+                ", procedureType=" + procedureType +
+                ", startTime=" + startTime +
+                ", endTime=" + endTime +
+                ", procedureStatus=" + procedureStatus +
+                ", sgsCause=" + sgsCause +
+                ", rejectCause=" + rejectCause +
+                ", cpCause=" + cpCause +
+                ", rpCause=" + rpCause +
+                ", mmeIpAdd='" + mmeIpAdd + '\'' +
+                ", mscServerIpAdd='" + mscServerIpAdd + '\'' +
+                ", serviceIndicator=" + serviceIndicator +
+                '}';
+    }
 }

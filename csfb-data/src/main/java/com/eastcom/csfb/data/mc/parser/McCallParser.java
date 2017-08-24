@@ -12,12 +12,12 @@ public class McCallParser extends CSVParser<McCallEvent> {
 
     @Override
     public int getRequiredFields() {
-        return 25;
+        return 81;
     }
 
     @Override
     public int getTotalFields() {
-        return 25;
+        return 81;
     }
 
     @Override
@@ -29,33 +29,33 @@ public class McCallParser extends CSVParser<McCallEvent> {
         mcCallEvent.setLac(toInt(csvArr.get(9)));
         mcCallEvent.setCi(toInt(csvArr.get(10)));
         mcCallEvent.setResult(toInt(csvArr.get(17)));
-        mcCallEvent.setCallingNum(trim(csvArr.get(20)));
-        mcCallEvent.setCalledNum(trim(csvArr.get(21)));
-        mcCallEvent.setCallingimsi(trim(csvArr.get(23)));
-        mcCallEvent.setCalledimsi(trim(csvArr.get(24)));
-        mcCallEvent.setCallingTmsi(trim(csvArr.get(28)));
-        mcCallEvent.setCalledTmsi(trim(csvArr.get(29)));
-        mcCallEvent.setEventCause(toInt(csvArr.get(36)));
-        mcCallEvent.setEventResult(toInt(csvArr.get(38)));
-        mcCallEvent.setAssgCause(toInt(csvArr.get(40)));
-        mcCallEvent.setDisconCause(toInt(csvArr.get(41)));
-        mcCallEvent.setClearCause(toInt(csvArr.get(42)));
-        mcCallEvent.setRelCauseValue(toInt(csvArr.get(43)));
-        mcCallEvent.setSetupResult(toInt(csvArr.get(45)));
-        mcCallEvent.setCmreqoffset(toInt(csvArr.get(50)));
-        mcCallEvent.setCmrspoffset(toInt(csvArr.get(51)));
-        mcCallEvent.setAuthreqOffset(toInt(csvArr.get(52)));
-        mcCallEvent.setAssreqOffset(toInt(csvArr.get(58)));
-        mcCallEvent.setSetupOffset(toInt(csvArr.get(60)));
-        mcCallEvent.setCpgoffset(toInt(csvArr.get(61)));
-        mcCallEvent.setCpgrspoffset(toInt(csvArr.get(62)));
-        mcCallEvent.setConnOffset(toInt(csvArr.get(63)));
-        mcCallEvent.setConnackoffset(toInt(csvArr.get(64)));
-        mcCallEvent.setDisconnOffset(toInt(csvArr.get(66)));
-        mcCallEvent.setAlertOffset(toInt(csvArr.get(69)));
-        mcCallEvent.setRelOffset(toInt(csvArr.get(72)));
-        mcCallEvent.setClearOffset(toInt(csvArr.get(75)));
-        mcCallEvent.setPagingResptype(toInt(csvArr.get(79)));
+        mcCallEvent.setCallingNum(trim(csvArr.get(21)));
+        mcCallEvent.setCalledNum(trim(csvArr.get(22)));
+        mcCallEvent.setCallingimsi(trim(csvArr.get(24)));
+        mcCallEvent.setCalledimsi(trim(csvArr.get(25)));
+        mcCallEvent.setCallingTmsi(trim(csvArr.get(29)));
+        mcCallEvent.setCalledTmsi(trim(csvArr.get(30)));
+        mcCallEvent.setEventCause(toInt(csvArr.get(37)));
+        mcCallEvent.setEventResult(toInt(csvArr.get(39)));
+        mcCallEvent.setAssgCause(toInt(csvArr.get(41)));
+        mcCallEvent.setDisconCause(toInt(csvArr.get(42)));
+        mcCallEvent.setClearCause(toInt(csvArr.get(43)));
+        mcCallEvent.setRelCauseValue(toInt(csvArr.get(44)));
+        mcCallEvent.setSetupResult(toInt(csvArr.get(46)));
+        mcCallEvent.setCmreqoffset(toInt(csvArr.get(51)));
+        mcCallEvent.setCmrspoffset(toInt(csvArr.get(52)));
+        mcCallEvent.setAuthreqOffset(toInt(csvArr.get(53)));
+        mcCallEvent.setAssreqOffset(toInt(csvArr.get(59)));
+        mcCallEvent.setSetupOffset(toInt(csvArr.get(61)));
+        mcCallEvent.setCpgoffset(toInt(csvArr.get(62)));
+        mcCallEvent.setCpgrspoffset(toInt(csvArr.get(63)));
+        mcCallEvent.setConnOffset(toInt(csvArr.get(64)));
+        mcCallEvent.setConnackoffset(toInt(csvArr.get(65)));
+        mcCallEvent.setDisconnOffset(toInt(csvArr.get(67)));
+        mcCallEvent.setAlertOffset(toInt(csvArr.get(70)));
+        mcCallEvent.setRelOffset(toInt(csvArr.get(71)));
+        mcCallEvent.setClearOffset(toInt(csvArr.get(74)));
+        mcCallEvent.setPagingResptype(toInt(csvArr.get(78)));
         mcCallEvent.setRspdur(toInt(csvArr.get(80)));
 
         return mcCallEvent;
