@@ -2,11 +2,6 @@ package com.eastcom.csfb.storm.topo;
 
 import com.eastcom.csfb.data.CSVParser;
 import com.eastcom.csfb.data.UserCommon;
-import com.eastcom.csfb.data.ltesignal.LteS1Mme;
-import com.eastcom.csfb.data.ltesignal.LteSGs;
-import com.eastcom.csfb.data.mc.McCallEvent;
-import com.eastcom.csfb.data.mc.McLocationUpdate;
-import com.eastcom.csfb.data.mc.McPaging;
 import com.eastcom.csfb.storm.base.BeanFactory;
 import com.eastcom.csfb.storm.base.RedisBatchExector;
 import com.eastcom.csfb.storm.base.TopicCSVParsers;
@@ -19,6 +14,7 @@ import com.eastcom.csfb.storm.base.util.KryoUtils;
 import com.eastcom.csfb.storm.kafka.ConfigKey;
 import com.eastcom.csfb.storm.kafka.KafkaReader;
 import com.eastcom.csfb.storm.kafka.ReadHook;
+import com.eastcom.csfb.storm.kafka.low.KafkaOldLowReader;
 import com.esotericsoftware.kryo.Kryo;
 import com.google.common.base.Charsets;
 import com.google.common.hash.HashFunction;
@@ -141,9 +137,12 @@ public class CsfbSpout extends BaseRichSpout implements ReadHook {
             for (int i = 0; i < fileReadThreads; i++) {
                 new FileReader("file-reader-" + i).start();
             }
-        } else if (Objects.equals(this.spoutType, "kafka")) {
+        } else if (Objects.equals(this.spoutType, "KAFKA_HIGH_LEVEL")) {
             this.topicCSVParsers = this.beanFactory.getTopicCsvParser();
             new KafkaReader<>(conf, this, this.topicCSVParsers);
+        } else if (Objects.equals(this.spoutType, "KAFKA_OLD_LOW_LEVEL")) {
+            this.topicCSVParsers = this.beanFactory.getTopicCsvParser();
+            new KafkaOldLowReader<>(conf, this, this.topicCSVParsers);
         }
 
         partitionManager = new PartitionManager(conf);
@@ -183,31 +182,34 @@ public class CsfbSpout extends BaseRichSpout implements ReadHook {
     }
 
     private void toRedisPartition(UserCommon csvObject) {
-        long start_time = csvObject.getStartTime();
-        if (start_time != 0 && start_time + this.redisBufferMs > System.currentTimeMillis() + this.interval) {
-            String imsi = csvObject.getImsi();
-            byte[] bs = null;
-//            logger.info("UserCommon csvObject: {}.",csvObject.toString());
-            int imsiHash = hashFunction.newHasher().putString(imsi, Charsets.UTF_8).hash().asInt();
-            // 根据imsi产生的hash，创建redis数据分区
-            int partition = Math.abs(imsiHash % partitionSize);
-            String key = toKey(redisKey, "{" + partition + "}");
-            try {
-                try {
-                    bs = KryoUtils.serialize(KryoUtils.create(), csvObject);
-                } catch (Exception e) {
-                    logger.warn("serialize false, UserCommon csvObject: {}.", csvObject.toString());
-                    throw e;
+        long start_time = 0;
+        String imsi = null;
+        try {
+            start_time = csvObject.getStartTime();
+            if (start_time != 0 && start_time + this.redisBufferMs > System.currentTimeMillis() + this.interval) {
+                imsi = csvObject.getImsi();
+                if (imsi != null) {
+                    byte[] bs = null;
+                    int imsiHash = hashFunction.newHasher().putString(imsi, Charsets.UTF_8).hash().asInt();
+                    // 根据imsi产生的hash，创建redis数据分区
+                    int partition = Math.abs(imsiHash % partitionSize);
+                    String key = toKey(redisKey, "{" + partition + "}");
+                    try {
+                        bs = KryoUtils.serialize(KryoUtils.create(), csvObject);
+                    } catch (Exception e) {
+                        logger.warn("serialize false, UserCommon csvObject: {}.", csvObject.toString());
+                        throw e;
+                    }
+                    try {
+                        // 添加数据到zset中 jp.getPipeline().zadd(key, score, member);
+                        redisBatchExector.zadd(encode(key), start_time, bs);
+                    } catch (ArrayIndexOutOfBoundsException e) {
+                        logger.warn("Failed to add redis object,key: {}, data size: {}, imsi: {}, start_time: {}, exception: {}.", key, bs.length, imsi, start_time, e.fillInStackTrace());
+                    }
                 }
-                try {
-                    // 添加数据到zset中 jp.getPipeline().zadd(key, score, member);
-                    redisBatchExector.zadd(encode(key), start_time, bs);
-                } catch (ArrayIndexOutOfBoundsException e) {
-                    logger.warn("Failed to add redis object, data size: {}, imsi: {}, start_time: {}.", bs.length, imsi, start_time, e.getMessage());
-                }
-            } catch (Exception e) {
-                logger.warn("Failed to add object to RedisPartition, imsi: {}, start_time: {}.", imsi, start_time, e.getMessage());
             }
+        } catch (Exception e) {
+            logger.warn("Failed to add object to RedisPartition, imsi: {}, start_time: {}, exception: {}.", imsi, start_time, e.fillInStackTrace());
         }
     }
 
@@ -227,8 +229,12 @@ public class CsfbSpout extends BaseRichSpout implements ReadHook {
             // 获取并初始化对象
             if (data != null) {
                 UserCommon csvObject = (UserCommon) data;
-                csvObject = filter(csvObject);
-                toRedisPartition(csvObject);
+                if (csvObject.getImsi() != null) {
+                    csvObject = filter(csvObject);
+                    toRedisPartition(csvObject);
+                } else {
+                    logger.warn("It is null that the process get from the source.");
+                }
             }
         } catch (Exception e) {
             logger.warn("putValues exception: " + e.getMessage());

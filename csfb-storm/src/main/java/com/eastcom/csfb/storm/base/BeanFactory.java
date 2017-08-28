@@ -16,18 +16,14 @@ import java.util.Properties;
 
 public class BeanFactory {
 
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
-
-
     public static final String KAFKA_PREFIX = "kafka.";
-
     public static final String JEDIS_PREFIX = "jedis.";
-
     public static final String PUBSUB_JEDIS_PREFIX = "pubsub.jedis.";
     private static DataCache dataCache;
     private static Pool<Jedis> jedisPool;
     private static TopicCSVParsers topicCsvParser;
     private static Object LOCKER = "LOCKER";
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private Map<String, Object> stormConfig;
 
     public BeanFactory(Map<String, Object> config) {
@@ -97,13 +93,18 @@ public class BeanFactory {
                 return jedisPool;
             }
             Map<String, Object> props = mapPrefix(JEDIS_PREFIX);
-
+            boolean poolStatus = (props.get("pool.zookeeper.address") != null);
+            logger.warn("codis pool status: {}.", poolStatus);
             if (props.get("pool.zookeeper.address") == null) {
                 Number minIdle = (Number) props.get("minIdle");
                 Number maxTotal = (Number) props.get("maxTotal");
                 List<String> addresses = (List<String>) props.get("addresses");
                 String password = (String) props.get("password");
-                jedisPool = new RoundRobinJedisPool(addresses, password, minIdle.intValue(), maxTotal.intValue());
+                try {
+                    jedisPool = new RoundRobinJedisPool(addresses, password, minIdle.intValue(), maxTotal.intValue());
+                } catch (Exception e) {
+                    logger.error("Failed to create redis pool, exception: {}.", e.getMessage());
+                }
             } else if (props.get("pool.zookeeper.address") != null) {
                 String zkConnect = MapUtils.getString(props, "pool.zookeeper.address");
                 int zkTimeout = MapUtils.getIntValue(props, "pool.zookeeper.timeout", 30_000);

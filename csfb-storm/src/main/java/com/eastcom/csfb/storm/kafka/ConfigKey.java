@@ -9,6 +9,9 @@ public class ConfigKey {
     public static final String PROJECT_SPOUT_REDIS_BUFFER_MS = "project.spout.redis.buffer.ms";
     public static final String PROJECT_SPOUT_REDIS_READER_THREADS = "project.spout.redis.reader.threads";
 
+    public static final String PROJECT_SPOUT_ZOOKEEPER_CONNECT = "project.spout.zk.kafka.connect";
+    public static final String PROJECT_SPOUT_ZOOKEEPER_CONNECT_TIMEOUT = "project.spout.zk.kafka.connect.timeout";
+
 
     public static final String PROJECT_REDIS_PARTITION_SIZE = "project.redis.partition.size";
     public static final String PROJECT_SPOUT_ZK_CONNECT = "project.spout.zk.connect";
@@ -32,6 +35,12 @@ public class ConfigKey {
     public static final String KAFKA_KEY_DESERIALIZER = "kafka.key.deserializer";
     public static final String KAFKA_VALUE_DESERIALIZER = "kafka.value.deserializer";
     public static final String KAFKA_AUTO_OFFSET_RESET = "kafka.auto.offset.reset";
+
+    public static final String KAFKA_AUTO_COMMIT_INTERVAL_MS = "auto.commit.interval.ms";
+
+    public static final String KAFKA_OLD_LOW_SOTIMEOUT = "kafka.value.deserializer";
+    public static final String KAFKA_OLD_LOW_BUFFER_SIZE = "kafka.value.deserializer";
+    public static final String KAFKA_OLD_LOW_FETCH_SIZE = "kafka.value.deserializer";
 
     public static final String PROJECT_BOLT_KAFKA_WRITER_THREADS = "project.bolt.kafka.writer.threads";
     public static final String PROJECT_BOLT_KAFKA_WRITER_TOPIC = "project.bolt.kafka.writer.topic";

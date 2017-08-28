@@ -1,5 +1,7 @@
 package com.eastcom.csfb.storm.base;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.exceptions.JedisConnectionException;
 import redis.clients.util.Pool;
@@ -11,11 +13,13 @@ import java.io.Closeable;
  */
 public class RedisBatchExector implements Closeable {
 
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
+
     private JedisPipeline jp;
 
     private int pSize = 0;
 
-    private int batchSize = 1000;
+    private int batchSize = 10000;
 
     private Pool<Jedis> jedisPool;
 
@@ -31,7 +35,7 @@ public class RedisBatchExector implements Closeable {
     }
 
 
-    public void init() {
+    private void init() {
         this.jp = new JedisPipeline(this.jedisPool);
         this.jp.open();
     }
@@ -44,12 +48,12 @@ public class RedisBatchExector implements Closeable {
     /*
      * keys
      */
-    public void expire(String key, int seconds) {
+    public synchronized void expire(String key, int seconds) {
         jp.getPipeline().expire(key, seconds);
         incr();
     }
 
-    public void del(String key) {
+    public synchronized void del(String key) {
         jp.getPipeline().del(key);
         incr();
     }
@@ -57,17 +61,17 @@ public class RedisBatchExector implements Closeable {
     /*
      * hashs
      */
-    public void hdel(String key, String... field) {
+    public synchronized void hdel(String key, String... field) {
         jp.getPipeline().hdel(key, field);
         incr();
     }
 
-    public void hset(byte[] key, byte[] field, byte[] value) {
+    public synchronized void hset(byte[] key, byte[] field, byte[] value) {
         jp.getPipeline().hset(key, field, value);
         incr();
     }
 
-    public void hset(String key, String field, String value) {
+    public synchronized void hset(String key, String field, String value) {
         jp.getPipeline().hset(key, field, value);
         incr();
     }
@@ -79,7 +83,7 @@ public class RedisBatchExector implements Closeable {
      * @param field
      * @param value
      */
-    public void hincrBy(String key, String field, long value) {
+    public synchronized void hincrBy(String key, String field, long value) {
         jp.getPipeline().hincrBy(key, field, value);
         incr();
     }
@@ -87,7 +91,7 @@ public class RedisBatchExector implements Closeable {
     /*
      * zset
      */
-    public void zincrBy(String key, double score, String member) {
+    public synchronized void zincrBy(String key, double score, String member) {
         jp.getPipeline().zincrby(key, score, member);
         incr();
     }
@@ -99,19 +103,19 @@ public class RedisBatchExector implements Closeable {
      * @param score
      * @param member
      */
-    public void zadd(byte[] key, double score, byte[] member) {
+    public synchronized void zadd(byte[] key, double score, byte[] member) {
         try {
             jp.getPipeline().zadd(key, score, member);
             incr();
         } catch (JedisConnectionException exception) {
-//            this.jedisPool.returnBrokenResource(this.jp.getJedis());
+            logger.warn("change redis handle.");
             jp.broken();
             jp.open();
             zadd(key, score, member);
         }
     }
 
-    public void zadd(String key, double score, String member) {
+    public synchronized void zadd(String key, double score, String member) {
         jp.getPipeline().zadd(key, score, member);
         incr();
     }
@@ -120,7 +124,7 @@ public class RedisBatchExector implements Closeable {
      * list
 	 */
 
-    public void lpush(String key, String... values) {
+    public synchronized void lpush(String key, String... values) {
         jp.getPipeline().lpush(key, values);
         incr();
     }
@@ -128,16 +132,16 @@ public class RedisBatchExector implements Closeable {
     /**
      * 在set集合中往key中添加member成员 set
      */
-    public void sadd(String key, String... member) {
+    public synchronized void sadd(String key, String... member) {
         jp.getPipeline().sadd(key, member);
         incr();
     }
 
-    public void close() {
+    public synchronized void close() {
         jp.close(pSize);
     }
 
-    public void broken() {
+    public synchronized void broken() {
         jp.broken();
     }
 
@@ -146,6 +150,7 @@ public class RedisBatchExector implements Closeable {
         if (pSize >= batchSize) {
             jp.syncAndChange();
             pSize = 0;
+            logger.warn("flush pipeline at {} batch.", batchSize);
         }
     }
 

@@ -2,7 +2,7 @@ name: "csfb-topology"
 
 config:
   topology.workers: 30
-  project.spout.type: kafka
+  project.spout.type: KAFKA_OLD_LOW_LEVEL
   project.spout.file.topics: ["lte_s1_mme", "lte_sgs", "mc_call", "mc_paging", "mc_location"]
 
   project.spout.ftp.reader.threads: 10
@@ -10,8 +10,9 @@ config:
   project.spout.redis.reader.threads: 10
 #  the redis scan delay this time3600000
   project.spout.redis.buffer.ms: 10800000
-#  project.spout.parallelism: 10
-  project.spout.zk.connect: "10.11.122.136:2181/partition-manager"
+  project.spout.parallelism: 10
+  project.spout.zk.connect: "10.11.122.136:2181/eastcom_ue/csfb_partition_manager"
+  project.spout.zk.kafka.connect: "10.11.122.136:2181,10.11.122.137:2181,10.11.122.138:2181,10.11.122.139:2181,10.11.122.140:2181,10.11.122.141:2181,10.11.122.142:2181/eastcom_ue"
   project.redis.partition.size: 100000
 #  project.bolt.parallelism: 10
   project.bolt.kafka.writer.threads: 10
@@ -66,6 +67,7 @@ config:
 #  - resource: false
 #    file: "../flux/redisPool.yaml"
 #    override: false
+
 
   jedis.pool.zookeeper.address: "10.11.122.136:2181,10.11.122.137:2181,10.11.122.138:2181,10.11.122.139:2181,10.11.122.140:2181,10.11.122.141:2181,10.11.122.142:2181"
   jedis.pool.zookeeper.timeout: 10000

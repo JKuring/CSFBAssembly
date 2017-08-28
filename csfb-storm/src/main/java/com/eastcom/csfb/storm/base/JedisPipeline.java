@@ -18,6 +18,9 @@ public class JedisPipeline implements Cloneable {
 
     public void open() {
         jedis = jedisPool.getResource();
+        if (jedis == null) {
+            throw new NullPointerException("the number of redis object is null in the pool.");
+        }
         pipeline = jedis.pipelined();
     }
 
