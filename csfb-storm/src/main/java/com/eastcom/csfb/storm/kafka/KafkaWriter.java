@@ -61,6 +61,8 @@ public class KafkaWriter<K, V> {
                 prop.setProperty(entry.getKey().substring(prefix.length()), String.valueOf(entry.getValue()));
             }
         }
+        // 指定kafka2 bootstrap地址
+        prop.setProperty("bootstrap.servers", String.valueOf(stormConfig.get(ConfigKey.KAFKA2_BOOTSTRAP_SERVERS)));
         return prop;
     }
 

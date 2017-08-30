@@ -23,7 +23,7 @@ import java.util.concurrent.Executors;
 public class OutputKafkaBolt extends BaseRichBolt {
 
     private final Logger logger = LoggerFactory.getLogger(OutputKafkaBolt.class);
-    private final int bufferQueueSize = 3000;
+    private final int bufferQueueSize = 30000;
     private ExecutorService executor;
     private BlockingQueue<String> bufferQueue;
     private KafkaWriter<String, String> kafkaWriter;
@@ -50,7 +50,7 @@ public class OutputKafkaBolt extends BaseRichBolt {
                                 sendToKafka(bufferQueue.poll(), kafkaProducer, topic);
                             }
                         } catch (Exception e) {
-                            logger.warn("Failed to fetch data.");
+                            logger.warn("Failed to fetch data, exception: {}.", e.getMessage());
                         }
                     }
                 }
@@ -74,7 +74,7 @@ public class OutputKafkaBolt extends BaseRichBolt {
         }
     }
 
-    private synchronized void sendToKafka(String data, Producer<String, String> producer, String topic) {
+    private void sendToKafka(String data, Producer<String, String> producer, String topic) {
         if (data != null) {
             producer.send(new ProducerRecord<String, String>(topic, data));
         }

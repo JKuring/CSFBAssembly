@@ -32,6 +32,7 @@ public class ConfigKey {
     public static final String KAFKA_GROUP_ID = "kafka.group.id";
     public static final String KAFKA_TOPIC_NAMES = "kafka.topic.names";
     public static final String KAFKA_BOOTSTRAP_SERVERS = "kafka.bootstrap.servers";
+    public static final String KAFKA2_BOOTSTRAP_SERVERS = "kafka2.bootstrap.servers";
     public static final String KAFKA_KEY_DESERIALIZER = "kafka.key.deserializer";
     public static final String KAFKA_VALUE_DESERIALIZER = "kafka.value.deserializer";
     public static final String KAFKA_AUTO_OFFSET_RESET = "kafka.auto.offset.reset";

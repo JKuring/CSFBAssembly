@@ -48,20 +48,21 @@ config:
   # common
   kafka.group.id: csfb_topology
   kafka.bootstrap.servers: "10.11.94.54:6667,10.11.94.62:6667,10.11.94.70:6667,10.11.94.77:6667,10.11.94.177:6667,10.11.94.179:6667,10.11.94.183:6667,10.11.94.185:6667,10.11.94.186:6667,10.11.94.190:6667,10.11.94.192:6667,10.11.94.107:6667,10.11.94.100:6667,10.11.94.92:6667,10.11.94.84:6667,10.11.94.156:6667"
+  kafka2.bootstrap.servers: "10.11.94.136:6667,10.11.94.129:6667 ,10.11.94.122:6667 ,10.11.94.114:6667,10.11.94.166:6667,10.11.94.159:6667,10.11.94.152:6667,10.11.94.144:6667,10.11.94.182:6667,10.11.94.174:6667"
   # reader
   kafka.topic.names: ["r_lte_s1_mme", "r_lte_sgs", "r_mc_call", "r_mc_paging", "r_mc_location"]
   kafka.key.deserializer: org.apache.kafka.common.serialization.ByteArrayDeserializer
   kafka.value.deserializer: org.apache.kafka.common.serialization.ByteArrayDeserializer
   kafka.auto.offset.reset: latest
   # writer
-  project.bolt.kafka.writer.topic: r_csfb
-#  kafka.acks: 1
-#  kafka.retries: 1
-#  kafka.batch.size: 16384
-#  kafka.linger.ms: 0
-#  kafka.buffer.memory: 33554432
-#  kafka.key.serializer: org.apache.kafka.common.serialization.StringSerializer
-#  kafka.value.serializer: org.apache.kafka.common.serialization.StringSerializer
+  project.bolt.kafka.writer.topic: wy_p_csfb
+  kafka.acks: 1
+  kafka.retries: 1
+  kafka.batch.size: 16384
+  kafka.linger.ms: 0
+  kafka.buffer.memory: 33554432
+  kafka.key.serializer: org.apache.kafka.common.serialization.StringSerializer
+  kafka.value.serializer: org.apache.kafka.common.serialization.StringSerializer
 
 #includes:
 #  - resource: false

@@ -203,7 +203,7 @@ public class CsfbSpout extends BaseRichSpout implements ReadHook {
                     try {
                         // 添加数据到zset中 jp.getPipeline().zadd(key, score, member);
                         redisBatchExector.zadd(encode(key), start_time, bs);
-                    } catch (ArrayIndexOutOfBoundsException e) {
+                    } catch (RuntimeException e) {
                         logger.warn("Failed to add redis object,key: {}, data size: {}, imsi: {}, start_time: {}, exception: {}.", key, bs.length, imsi, start_time, e.fillInStackTrace());
                     }
                 }
@@ -227,15 +227,10 @@ public class CsfbSpout extends BaseRichSpout implements ReadHook {
     public void putValues(BlockingQueue bufferQueue, Object data, String topicName) throws Exception {
         try {
             // 获取并初始化对象
-            if (data != null) {
-                UserCommon csvObject = (UserCommon) data;
-                if (csvObject.getImsi() != null) {
-                    csvObject = filter(csvObject);
-                    toRedisPartition(csvObject);
-                } else {
-                    logger.warn("It is null that the process get from the source.");
-                }
-            }
+            UserCommon csvObject = (UserCommon) data;
+            csvObject = filter(csvObject);
+            if (csvObject != null)
+                toRedisPartition(csvObject);
         } catch (Exception e) {
             logger.warn("putValues exception: " + e.getMessage());
             throw e;
